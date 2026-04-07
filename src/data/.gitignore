@@ -2,5 +2,4 @@
 
 # Raw source datasets and lookup tables are kept local only.
 deportation_data_project_src/*
-!deportation_data_project_src/README.md
 lookups/*
