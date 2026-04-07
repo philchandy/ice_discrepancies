@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import * as d3 from "d3";
-import mockData from "../data/mockData.json";
+import processedData from "../data/processedData.json";
 
 const dimensionKeys = [
   "sex",
@@ -84,7 +84,7 @@ function buildSankey(records) {
 
 export function useData(filters) {
   return useMemo(() => {
-    const records = mockData.records;
+    const records = processedData.records;
     const filtered = applyFilters(records, filters);
     const outcomes = ["Released", "Removed", "Transferred", "Still Detained"];
 
@@ -94,23 +94,13 @@ export function useData(filters) {
     const selectedOutcomeShare = toShare(outcomeCountsFiltered, outcomes);
     const overallOutcomeShare = toShare(outcomeCountsAll, outcomes);
 
-    const years = d3
-      .rollup(
-        filtered,
-        (group) => group.length,
-        (d) => d.booking_year
-      )
-      .entries();
-
-    const timeSeries = mockData.timeSeries.map((row) => {
-      const localCount = years.find(([year]) => Number(year) === row.year)?.[1] || 0;
-      // Keep trend shape from aggregate data while allowing filters to shift intensity.
-      const adjustedPopulation = Math.max(
-        50,
-        Math.round(row.population * (0.6 + localCount / 80))
-      );
-      return { ...row, population: adjustedPopulation };
-    });
+    // Scale full-dataset time series by the current filter ratio so the line
+    // chart reflects the selected subgroup while preserving real magnitudes.
+    const filterRatio = records.length > 0 ? filtered.length / records.length : 1;
+    const timeSeries = processedData.timeSeries.map((row) => ({
+      ...row,
+      population: Math.max(1, Math.round(row.population * filterRatio)),
+    }));
 
     const facilityRollup = d3.rollup(
       filtered,
@@ -118,7 +108,7 @@ export function useData(filters) {
       (d) => d.facility_id
     );
 
-    const facilities = mockData.facilities.map((facility) => ({
+    const facilities = processedData.facilities.map((facility) => ({
       ...facility,
       count: facilityRollup.get(facility.facility_id) || 0,
     }));

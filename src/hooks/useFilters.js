@@ -8,7 +8,7 @@ const defaultFilters = {
   region_of_origin: "All",
   criminal_history: "All",
   first_booking_type: "All",
-  yearStart: 2018,
+  yearStart: 2004,
   yearEnd: 2025,
 };
 
