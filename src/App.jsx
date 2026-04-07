@@ -6,6 +6,7 @@ import StackedBar from "./components/StackedBar";
 import BoxPlot from "./components/BoxPlot";
 import SankeyDiagram from "./components/SankeyDiagram";
 import InsightPanel from "./components/InsightPanel";
+import Methodology from "./components/Methodology";
 import { FilterProvider, useFilters } from "./hooks/useFilters";
 import { useData } from "./hooks/useData";
 
@@ -85,24 +86,16 @@ function StoryContent() {
               summary={summary}
             />
           </section>
+          
+          <Methodology />
 
           <footer className="story-footer">
-            <h3>Methodology Notes</h3>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. 
-            Corporis repellendus repudiandae animi aliquam nam perspiciatis fugit, non laborum soluta, 
-            id suscipit maiores molestiae similique praesentium quos inventore libero dolore laboriosam.
-            </p>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. 
-            Corporis repellendus repudiandae animi aliquam nam perspiciatis fugit, non laborum soluta, 
-            id suscipit maiores molestiae similique praesentium quos inventore libero dolore laboriosam.
-            </p>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit. 
-            Corporis repellendus repudiandae animi aliquam nam perspiciatis fugit, non laborum soluta, 
-            id suscipit maiores molestiae similique praesentium quos inventore libero dolore laboriosam.
-            </p>
+            <section>
+              <div>
+                Trends in Immigration, created by Max Feit, Sarah Witzig, and Phillip Chandy.
+                For CS7250 at Northeastern University.
+              </div>
+            </section>
           </footer>
         </main>
       </div>
