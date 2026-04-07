@@ -51,8 +51,8 @@ p {
 }
 
 .hero {
-  min-height: 88vh;
-  padding: 5rem 0 2rem;
+  min-height: 100svh;
+  padding: 5rem 0 3rem;
   display: grid;
   align-items: center;
   position: relative;
@@ -87,6 +87,17 @@ p {
   grid-template-columns: 280px 1fr;
   gap: 2rem;
   align-items: start;
+}
+
+.story-layout-hidden {
+  opacity: 0;
+  transform: translateY(44px);
+}
+
+.story-layout-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 700ms ease, transform 700ms ease;
 }
 
 .sidebar {
@@ -277,6 +288,10 @@ svg text {
     grid-template-columns: 1fr;
   }
 
+  .story-layout-hidden {
+    transform: translateY(24px);
+  }
+
   .sidebar {
     position: static;
   }
@@ -289,5 +304,14 @@ svg text {
 
   .story-section {
     min-height: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-layout-hidden,
+  .story-layout-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }

@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import Hero from "./components/Hero";
 import Filters from "./components/Filters";
 import LineChart from "./components/LineChart";
@@ -11,6 +12,9 @@ import { FilterProvider, useFilters } from "./hooks/useFilters";
 import { useData } from "./hooks/useData";
 
 function StoryContent() {
+  const [isVizVisible, setIsVizVisible] = useState(false);
+  const vizLayoutRef = useRef(null);
+
   const { filters } = useFilters();
   const {
     filterOptions,
@@ -24,11 +28,35 @@ function StoryContent() {
     summary,
   } = useData(filters);
 
+  useEffect(() => {
+    const target = vizLayoutRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting) {
+          setIsVizVisible(true);
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.14,
+      }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="app-shell">
       <Hero />
 
-      <div className="story-layout">
+      <div
+        ref={vizLayoutRef}
+        className={`story-layout ${isVizVisible ? "story-layout-visible" : "story-layout-hidden"}`}
+      >
         <aside className="sidebar">
           <Filters options={filterOptions} />
         </aside>
