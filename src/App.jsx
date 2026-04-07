@@ -26,6 +26,8 @@ function StoryContent() {
     overallLengths,
     sankeyData,
     summary,
+    isLoading,
+    loadError,
   } = useData(filters);
 
   useEffect(() => {
@@ -62,6 +64,9 @@ function StoryContent() {
         </aside>
 
         <main className="story-content">
+          {isLoading && <div className="data-status">Loading processed data...</div>}
+          {loadError && <div className="data-status data-status-error">{loadError}</div>}
+
           <section className="story-section" id="system-scale">
             <h2>System Scale</h2>
             <p className="section-lead">

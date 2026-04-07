@@ -9,7 +9,28 @@ const height = 420;
 export default function SankeyDiagram({ data }) {
   const [hoveredLink, setHoveredLink] = useState(null);
 
+  const sanitizedData = useMemo(() => {
+    const safeNodes = Array.isArray(data?.nodes) ? data.nodes : [];
+    const safeLinks = Array.isArray(data?.links)
+      ? data.links.filter(
+          (link) =>
+            typeof link?.source === "string" &&
+            typeof link?.target === "string" &&
+            Number.isFinite(link?.value) &&
+            link.value > 0
+        )
+      : [];
+
+    return { nodes: safeNodes, links: safeLinks };
+  }, [data]);
+
+  const hasRenderableGraph = sanitizedData.nodes.length > 0 && sanitizedData.links.length > 0;
+
   const graph = useMemo(() => {
+    if (!hasRenderableGraph) {
+      return { nodes: [], links: [] };
+    }
+
     const generator = sankey()
       .nodeId((d) => d.name)
       .nodeWidth(16)
@@ -20,10 +41,10 @@ export default function SankeyDiagram({ data }) {
       ]);
 
     // Clone to keep d3-sankey mutations isolated from React props.
-    const nodes = data.nodes.map((d) => ({ ...d }));
-    const links = data.links.map((d) => ({ ...d }));
+    const nodes = sanitizedData.nodes.map((d) => ({ ...d }));
+    const links = sanitizedData.links.map((d) => ({ ...d }));
     return generator({ nodes, links });
-  }, [data]);
+  }, [hasRenderableGraph, sanitizedData.links, sanitizedData.nodes]);
 
   const color = useMemo(
     () => d3.scaleOrdinal().domain(graph.nodes.map((n) => n.name)).range(d3.schemeTableau10),
@@ -33,6 +54,9 @@ export default function SankeyDiagram({ data }) {
   return (
     <div className="viz-card">
       <h4 className="viz-title">Pathways: Booking to Outcome (Sankey)</h4>
+      {!hasRenderableGraph && (
+        <p>No pathway data available for the current selection.</p>
+      )}
       <svg viewBox={`0 0 ${width} ${height}`} width="100%" height="420">
         <g>
           {graph.links.map((link, index) => (

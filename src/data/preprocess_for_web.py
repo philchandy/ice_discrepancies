@@ -13,7 +13,7 @@ import pandas as pd
 BASE        = Path(__file__).parent
 STAYS_CSV   = BASE / "deportation_data_project_src" / "detention-stays-latest.csv"
 LOOKUP_CSV  = BASE / "lookups" / "factory_code_map_with_coordinates.csv"
-OUTPUT_JSON = BASE / "processedData.json"
+OUTPUT_JSON = BASE.parent.parent / "public" / "data" / "processedData.json"
 
 SAMPLE_SIZE = 20_000
 RANDOM_SEED = 42
@@ -235,6 +235,7 @@ def main():
 
     #output json 
     out = {"records": records, "timeSeries": time_series, "facilities": facilities}
+    OUTPUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_JSON, "w", encoding="utf-8") as fh:
         json.dump(out, fh, separators=(",", ":"))
 

@@ -1,6 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as d3 from "d3";
-import processedData from "../data/processedData.json";
+
+const emptyProcessedData = {
+  records: [],
+  timeSeries: [],
+  facilities: [],
+};
 
 const dimensionKeys = [
   "sex",
@@ -33,7 +38,7 @@ function computeOptions(records) {
 
   const years = records.map((d) => d.booking_year);
   options.yearBounds = {
-    min: d3.min(years) ?? 2018,
+    min: d3.min(years) ?? 2004,
     max: d3.max(years) ?? 2025,
   };
 
@@ -83,6 +88,48 @@ function buildSankey(records) {
 }
 
 export function useData(filters) {
+  const [processedData, setProcessedData] = useState(emptyProcessedData);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadData() {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+
+        const response = await fetch("/data/processedData.json", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Failed to load processed data (${response.status})`);
+        }
+
+        const json = await response.json();
+        if (!isCancelled) {
+          setProcessedData({
+            records: Array.isArray(json.records) ? json.records : [],
+            timeSeries: Array.isArray(json.timeSeries) ? json.timeSeries : [],
+            facilities: Array.isArray(json.facilities) ? json.facilities : [],
+          });
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setLoadError(error.message || "Failed to load processed data");
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadData();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
   return useMemo(() => {
     const records = processedData.records;
     const filtered = applyFilters(records, filters);
@@ -113,8 +160,12 @@ export function useData(filters) {
       count: facilityRollup.get(facility.facility_id) || 0,
     }));
 
-    const selectedLengths = filtered.map((d) => d.detention_length_days);
-    const overallLengths = records.map((d) => d.detention_length_days);
+    const selectedLengths = filtered
+      .map((d) => d.detention_length_days)
+      .filter((value) => Number.isFinite(value));
+    const overallLengths = records
+      .map((d) => d.detention_length_days)
+      .filter((value) => Number.isFinite(value));
 
     const sankeyData = buildSankey(filtered.length ? filtered : records);
 
@@ -138,6 +189,8 @@ export function useData(filters) {
       overallLengths,
       sankeyData,
       summary,
+      isLoading,
+      loadError,
     };
-  }, [filters]);
+  }, [filters, isLoading, loadError, processedData]);
 }
