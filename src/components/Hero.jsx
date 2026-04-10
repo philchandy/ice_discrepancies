@@ -6,9 +6,7 @@ export default function Hero() {
           <div className="hero-kicker">CS7250</div>
           <h1 className="hero-title">Inside the ICE Detention System</h1>
           <p className="hero-copy">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. 
-            Corporis repellendus repudiandae animi aliquam nam perspiciatis fugit, non laborum soluta, 
-            id suscipit maiores molestiae similique praesentium quos inventore libero dolore laboriosam.
+            Examining immigration detention trends in the United States from 2004 to 2025 through narrative data visualization.
           </p>
         </div>
       </div>
