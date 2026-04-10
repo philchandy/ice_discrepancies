@@ -1,0 +1,1 @@
+{"nodes":[],"links":[],"metadata":{"repeat_people":0,"transitions":0,"min_stays":2,"person_column":"detainee_unique_identifier","time_column":"stay_book_in_date_time","program_column":"final_program","outcome_column":"stay_release_reason"}}

@@ -32,3 +32,10 @@ coverage/
 # cache
 .cache/
 .eslintcache
+
+# misc
+./src/data/deportation_data_project_src/
+./src/data/lookups/
+./src/data/processedData.json
+./src/data/mockData.json
+./src/data/facility_enriched.xlsx
