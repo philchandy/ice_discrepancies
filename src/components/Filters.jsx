@@ -10,7 +10,13 @@ const labels = {
 };
 
 export default function Filters({ options }) {
-  const { filters, updateFilter, resetFilters } = useFilters();
+  const {
+    primaryFilters,
+    comparisonFilters,
+    updatePrimaryFilter,
+    updateComparisonFilter,
+    resetFilters,
+  } = useFilters();
 
   const fields = useMemo(
     () => ["sex", "age_group", "region_of_origin", "criminal_history", "first_booking_type"],
@@ -19,24 +25,49 @@ export default function Filters({ options }) {
 
   return (
     <div className="filters">
-      <h3>Demographic Selector</h3>
+      <h3>Demographic Selectors</h3>
 
-      {fields.map((field) => (
-        <div className="filter-group" key={field}>
-          <label htmlFor={`filter-${field}`}>{labels[field]}</label>
-          <select
-            id={`filter-${field}`}
-            value={filters[field]}
-            onChange={(event) => updateFilter(field, event.target.value)}
-          >
-            {(options[field] || ["All"]).map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
+      <div className="filter-columns">
+        <div className="filter-column">
+          <div className="filter-section-title">Group A</div>
+          {fields.map((field) => (
+            <div className="filter-group" key={`primary-${field}`}>
+              <label htmlFor={`primary-filter-${field}`}>{labels[field]}</label>
+              <select
+                id={`primary-filter-${field}`}
+                value={primaryFilters[field]}
+                onChange={(event) => updatePrimaryFilter(field, event.target.value)}
+              >
+                {(options[field] || ["All"]).map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
         </div>
-      ))}
+
+        <div className="filter-column">
+          <div className="filter-section-title">Group B</div>
+          {fields.map((field) => (
+            <div className="filter-group" key={`comparison-${field}`}>
+              <label htmlFor={`comparison-filter-${field}`}>{labels[field]}</label>
+              <select
+                id={`comparison-filter-${field}`}
+                value={comparisonFilters[field]}
+                onChange={(event) => updateComparisonFilter(field, event.target.value)}
+              >
+                {(options[field] || ["All"]).map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div className="filter-group">
         <label>Year Range</label>
@@ -44,16 +75,16 @@ export default function Filters({ options }) {
           <input
             type="number"
             min={options.yearBounds?.min}
-            max={filters.yearEnd}
-            value={filters.yearStart}
-            onChange={(event) => updateFilter("yearStart", Number(event.target.value))}
+            max={primaryFilters.yearEnd}
+            value={primaryFilters.yearStart}
+            onChange={(event) => updatePrimaryFilter("yearStart", Number(event.target.value))}
           />
           <input
             type="number"
-            min={filters.yearStart}
+            min={primaryFilters.yearStart}
             max={options.yearBounds?.max}
-            value={filters.yearEnd}
-            onChange={(event) => updateFilter("yearEnd", Number(event.target.value))}
+            value={primaryFilters.yearEnd}
+            onChange={(event) => updatePrimaryFilter("yearEnd", Number(event.target.value))}
           />
         </div>
       </div>

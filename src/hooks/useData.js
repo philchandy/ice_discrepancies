@@ -20,7 +20,7 @@ const dimensionKeys = [
   "first_booking_type",
 ];
 
-function applyFilters(records, filters) {
+function applyFilters(records, filters, yearBounds) {
   return records.filter((record) => {
     for (const key of dimensionKeys) {
       if (filters[key] !== "All" && record[key] !== filters[key]) {
@@ -28,10 +28,11 @@ function applyFilters(records, filters) {
       }
     }
 
-    return (
-      record.booking_year >= filters.yearStart &&
-      record.booking_year <= filters.yearEnd
-    );
+    if (!yearBounds) {
+      return true;
+    }
+
+    return record.booking_year >= yearBounds.yearStart && record.booking_year <= yearBounds.yearEnd;
   });
 }
 
@@ -92,7 +93,7 @@ function buildBookingSankey(records) {
   return { nodes, links };
 }
 
-export function useData(filters) {
+export function useData(primaryFilters, comparisonFilters) {
   const [processedData, setProcessedData] = useState(emptyProcessedData);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -156,61 +157,97 @@ export function useData(filters) {
 
   return useMemo(() => {
     const records = processedData.records;
-    const filtered = applyFilters(records, filters);
+    const yearBounds = {
+      yearStart: primaryFilters.yearStart,
+      yearEnd: primaryFilters.yearEnd,
+    };
+
+    const filteredPrimary = applyFilters(records, primaryFilters, yearBounds);
+    const filteredComparison = applyFilters(records, comparisonFilters, yearBounds);
     const outcomes = ["Released", "Removed", "Transferred", "Still Detained"];
 
     const outcomeCountsAll = countBy(records, "outcome");
-    const outcomeCountsFiltered = countBy(filtered, "outcome");
+    const outcomeCountsPrimary = countBy(filteredPrimary, "outcome");
+    const outcomeCountsComparison = countBy(filteredComparison, "outcome");
 
-    const selectedOutcomeShare = toShare(outcomeCountsFiltered, outcomes);
+    const selectedOutcomeShare = toShare(outcomeCountsPrimary, outcomes);
+    const comparisonOutcomeShare = toShare(outcomeCountsComparison, outcomes);
     const overallOutcomeShare = toShare(outcomeCountsAll, outcomes);
 
-    // Scale full-dataset time series by the current filter ratio so the line
-    // chart reflects the selected subgroup while preserving real magnitudes.
-    const filterRatio = records.length > 0 ? filtered.length / records.length : 1;
-    const timeSeries = processedData.timeSeries.map((row) => ({
-      ...row,
-      population: Math.max(1, Math.round(row.population * filterRatio)),
-    }));
+    const primaryRatio = records.length > 0 ? filteredPrimary.length / records.length : 1;
+    const comparisonRatio = records.length > 0 ? filteredComparison.length / records.length : 1;
+    const timeSeries = {
+      selected: processedData.timeSeries.map((row) => ({
+        ...row,
+        population: Math.max(1, Math.round(row.population * primaryRatio)),
+      })),
+      comparison: processedData.timeSeries.map((row) => ({
+        ...row,
+        population: Math.max(1, Math.round(row.population * comparisonRatio)),
+      })),
+      overall: processedData.timeSeries,
+    };
 
-    const facilityRollup = d3.rollup(
-      filtered,
+    const facilityRollupSelected = d3.rollup(
+      filteredPrimary,
+      (group) => group.length,
+      (d) => d.facility_id
+    );
+    const facilityRollupComparison = d3.rollup(
+      filteredComparison,
+      (group) => group.length,
+      (d) => d.facility_id
+    );
+    const facilityRollupOverall = d3.rollup(
+      records,
       (group) => group.length,
       (d) => d.facility_id
     );
 
     const facilities = processedData.facilities.map((facility) => ({
       ...facility,
-      count: facilityRollup.get(facility.facility_id) || 0,
+      selectedCount: facilityRollupSelected.get(facility.facility_id) || 0,
+      comparisonCount: facilityRollupComparison.get(facility.facility_id) || 0,
+      overallCount: facilityRollupOverall.get(facility.facility_id) || 0,
     }));
 
-    const selectedLengths = filtered
+    const selectedLengths = filteredPrimary
+      .map((d) => d.detention_length_days)
+      .filter((value) => Number.isFinite(value));
+    const comparisonLengths = filteredComparison
       .map((d) => d.detention_length_days)
       .filter((value) => Number.isFinite(value));
     const overallLengths = records
       .map((d) => d.detention_length_days)
       .filter((value) => Number.isFinite(value));
 
-    const bookingSankeyData = buildBookingSankey(filtered.length ? filtered : records);
+    const bookingSankeyData = buildBookingSankey(filteredPrimary.length ? filteredPrimary : records);
     const convictionReleaseSankeyData = processedData.convictionReleaseSankey;
 
     const summary = {
-      filteredCount: filtered.length,
+      filteredCount: filteredPrimary.length,
+      comparisonCount: filteredComparison.length,
       totalCount: records.length,
       dominantOutcome:
-        Object.entries(outcomeCountsFiltered).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+        Object.entries(outcomeCountsPrimary).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+        "N/A",
+      comparisonDominantOutcome:
+        Object.entries(outcomeCountsComparison).sort((a, b) => b[1] - a[1])[0]?.[0] ||
         "N/A",
     };
 
     return {
       filterOptions: computeOptions(records),
       records,
-      filtered,
+      filtered: filteredPrimary,
+      comparisonFiltered: filteredComparison,
       timeSeries,
       facilities,
       selectedOutcomeShare,
+      comparisonOutcomeShare,
       overallOutcomeShare,
       selectedLengths,
+      comparisonLengths,
       overallLengths,
       bookingSankeyData,
       convictionReleaseSankeyData,
@@ -218,5 +255,5 @@ export function useData(filters) {
       isLoading,
       loadError,
     };
-  }, [filters, isLoading, loadError, processedData]);
+  }, [comparisonFilters, isLoading, loadError, primaryFilters, processedData]);
 }

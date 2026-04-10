@@ -46,14 +46,30 @@ function computeStats(values) {
   };
 }
 
-export default function BoxPlot({ selectedLengths, overallLengths }) {
+export default function BoxPlot({ selectedLengths, comparisonLengths, overallLengths }) {
   const [hovered, setHovered] = useState(null);
   const groups = useMemo(
     () => [
-      { key: "selected", label: "Selected Group", values: selectedLengths },
-      { key: "overall", label: "Overall Population", values: overallLengths },
+      {
+        key: "selected",
+        label: "Selected Group (A)",
+        values: selectedLengths,
+        fill: "#83b8c2",
+      },
+      {
+        key: "comparison",
+        label: "Comparison Group (B)",
+        values: comparisonLengths,
+        fill: "#c8d6f0",
+      },
+      {
+        key: "overall",
+        label: "Overall Population",
+        values: overallLengths,
+        fill: "#d5cfbd",
+      },
     ],
-    [selectedLengths, overallLengths]
+    [comparisonLengths, overallLengths, selectedLengths]
   );
 
   const stats = useMemo(
@@ -96,7 +112,7 @@ export default function BoxPlot({ selectedLengths, overallLengths }) {
                 y={boxY}
                 width={boxWidth}
                 height={boxHeight}
-                fill="#83b8c2"
+                fill={group.fill}
                 stroke="#0f5a6b"
                 onMouseEnter={(event) =>
                   setHovered({

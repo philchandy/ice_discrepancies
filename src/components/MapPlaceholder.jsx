@@ -7,6 +7,32 @@ import { formatNumber } from "../utils/formatters";
 const width = 520;
 const height = 300;
 const margin = { top: 12, right: 14, bottom: 18, left: 14 };
+const mapGroups = [
+  {
+    key: "selected",
+    label: "Selected Group (A)",
+    countKey: "selectedCount",
+    color: "#0f5a6b",
+    stroke: "#06343f",
+    dx: -4,
+  },
+  {
+    key: "comparison",
+    label: "Comparison Group (B)",
+    countKey: "comparisonCount",
+    color: "#6c80b5",
+    stroke: "#41526f",
+    dx: 0,
+  },
+  {
+    key: "overall",
+    label: "Overall Population",
+    countKey: "overallCount",
+    color: "#ad3f2f",
+    stroke: "#7a271b",
+    dx: 4,
+  },
+];
 
 export default function MapPlaceholder({ data }) {
   const [hovered, setHovered] = useState(null);
@@ -55,7 +81,10 @@ export default function MapPlaceholder({ data }) {
   );
 
   const radiusScale = useMemo(() => {
-    const max = d3.max(projectedFacilities, (d) => d.count) ?? 1;
+    const max =
+      d3.max(projectedFacilities, (d) =>
+        d3.max(mapGroups, (group) => d[group.countKey] || 0)
+      ) ?? 1;
     return d3.scaleSqrt().domain([0, max]).range([2, 14]);
   }, [projectedFacilities]);
 
@@ -82,45 +111,62 @@ export default function MapPlaceholder({ data }) {
           vectorEffect="non-scaling-stroke"
         />
 
-        {projectedFacilities
-          .filter((facility) => facility.count > 0)
-          .map((facility) => (
+        {projectedFacilities.map((facility) => (
           <g key={facility.facility_id}>
-            <circle
-              cx={facility.x}
-              cy={facility.y}
-              r={radiusScale(facility.count)}
-              fill="#0f5a6b"
-              fillOpacity={0.65}
-              stroke="#06343f"
-              style={{ transition: "all 300ms ease" }}
-              onMouseEnter={(event) =>
-                setHovered({
-                  x: event.nativeEvent.offsetX,
-                  y: event.nativeEvent.offsetY,
-                  ...facility,
-                })
-              }
-              onMouseMove={(event) =>
-                setHovered((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        x: event.nativeEvent.offsetX,
-                        y: event.nativeEvent.offsetY,
-                      }
-                    : prev
-                )
-              }
-              onMouseLeave={() => setHovered(null)}
-            />
+            {mapGroups.map((group) => {
+              const count = facility[group.countKey] || 0;
+              if (count <= 0) return null;
+
+              return (
+                <circle
+                  key={`${facility.facility_id}-${group.key}`}
+                  cx={facility.x + group.dx}
+                  cy={facility.y}
+                  r={radiusScale(count)}
+                  fill={group.color}
+                  fillOpacity={0.62}
+                  stroke={group.stroke}
+                  style={{ transition: "all 300ms ease" }}
+                  onMouseEnter={(event) =>
+                    setHovered({
+                      x: event.nativeEvent.offsetX,
+                      y: event.nativeEvent.offsetY,
+                      name: facility.name,
+                      count,
+                      group: group.label,
+                    })
+                  }
+                  onMouseMove={(event) =>
+                    setHovered((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            x: event.nativeEvent.offsetX,
+                            y: event.nativeEvent.offsetY,
+                          }
+                        : prev
+                    )
+                  }
+                  onMouseLeave={() => setHovered(null)}
+                />
+              );
+            })}
           </g>
         ))}
       </svg>
 
+      <div className="legend">
+        {mapGroups.map((group) => (
+          <span key={group.key} className="legend-item">
+            <span className="legend-swatch" style={{ backgroundColor: group.color }} />
+            {group.label}
+          </span>
+        ))}
+      </div>
+
       {hovered && (
         <div className="tooltip" style={{ left: hovered.x, top: hovered.y }}>
-          {hovered.name}: {formatNumber(hovered.count)} records
+          {hovered.name} • {hovered.group}: {formatNumber(hovered.count)} records
         </div>
       )}
     </div>

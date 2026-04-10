@@ -7,16 +7,21 @@ const height = 260;
 const margin = { top: 20, right: 20, bottom: 42, left: 120 };
 const outcomes = ["Released", "Removed", "Transferred", "Still Detained"];
 
-export default function StackedBar({ selectedOutcomeShare, overallOutcomeShare }) {
+export default function StackedBar({
+  selectedOutcomeShare,
+  comparisonOutcomeShare,
+  overallOutcomeShare,
+}) {
   const [hovered, setHovered] = useState(null);
   const colorScale = useMemo(() => createColorScale(outcomes), []);
 
   const rows = useMemo(
     () => [
-      { group: "Selected Group", shares: selectedOutcomeShare },
+      { group: "Selected Group (A)", shares: selectedOutcomeShare },
+      { group: "Comparison Group (B)", shares: comparisonOutcomeShare },
       { group: "Overall Population", shares: overallOutcomeShare },
     ],
-    [selectedOutcomeShare, overallOutcomeShare]
+    [comparisonOutcomeShare, overallOutcomeShare, selectedOutcomeShare]
   );
 
   const xScale = useMemo(() => createLinearScale([0, 1], [margin.left, width - margin.right]), []);

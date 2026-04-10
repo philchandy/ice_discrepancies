@@ -117,6 +117,25 @@ p {
   margin-bottom: 0.8rem;
 }
 
+.filter-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.filter-column {
+  min-width: 0;
+}
+
+.filter-section-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  margin: 0.9rem 0 0.55rem;
+}
+
 .filter-group {
   margin-bottom: 0.8rem;
 }
@@ -313,7 +332,8 @@ svg text {
 
   .hero-inner,
   .two-col,
-  .insight-grid {
+  .insight-grid,
+  .filter-columns {
     grid-template-columns: 1fr;
   }
 

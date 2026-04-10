@@ -15,21 +15,23 @@ function StoryContent() {
   const [isVizVisible, setIsVizVisible] = useState(false);
   const vizLayoutRef = useRef(null);
 
-  const { filters } = useFilters();
+  const { primaryFilters, comparisonFilters } = useFilters();
   const {
     filterOptions,
     timeSeries,
     facilities,
     selectedOutcomeShare,
+    comparisonOutcomeShare,
     overallOutcomeShare,
     selectedLengths,
+    comparisonLengths,
     overallLengths,
     bookingSankeyData,
     convictionReleaseSankeyData,
     summary,
     isLoading,
     loadError,
-  } = useData(filters);
+  } = useData(primaryFilters, comparisonFilters);
 
   useEffect(() => {
     const target = vizLayoutRef.current;
@@ -74,33 +76,34 @@ function StoryContent() {
               A high-level look at detention volume trends and facility footprint.
             </p>
             <div className="viz-grid two-col">
-              <LineChart data={timeSeries} filters={filters} />
-              <MapPlaceholder data={facilities} filters={filters} />
+              <LineChart data={timeSeries} />
+              <MapPlaceholder data={facilities} />
             </div>
           </section>
 
           <section className="story-section" id="outcomes-comparison">
             <h2>Outcomes Comparison</h2>
             <p className="section-lead">
-              Compare outcome composition for the selected group against the full
-              population.
+              Compare outcome composition for selected group A, comparison group B,
+              and the overall population.
             </p>
             <StackedBar
               selectedOutcomeShare={selectedOutcomeShare}
+              comparisonOutcomeShare={comparisonOutcomeShare}
               overallOutcomeShare={overallOutcomeShare}
-              filters={filters}
             />
           </section>
 
           <section className="story-section" id="detention-length">
             <h2>Detention Length</h2>
             <p className="section-lead">
-              Distribution snapshots show how long people remain in detention.
+              Distribution snapshots show how long people remain in detention
+              across both selected groups and overall.
             </p>
             <BoxPlot
               selectedLengths={selectedLengths}
+              comparisonLengths={comparisonLengths}
               overallLengths={overallLengths}
-              filters={filters}
             />
           </section>
 
@@ -127,6 +130,7 @@ function StoryContent() {
             <h2>Insight Panel</h2>
             <InsightPanel
               selectedOutcomeShare={selectedOutcomeShare}
+              comparisonOutcomeShare={comparisonOutcomeShare}
               overallOutcomeShare={overallOutcomeShare}
               summary={summary}
             />

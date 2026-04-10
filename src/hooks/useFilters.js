@@ -2,7 +2,7 @@ import React, { createContext, useContext, useMemo, useState } from "react";
 
 const FilterContext = createContext(null);
 
-const defaultFilters = {
+const defaultPrimaryFilters = {
   sex: "All",
   age_group: "All",
   region_of_origin: "All",
@@ -12,20 +12,42 @@ const defaultFilters = {
   yearEnd: 2025,
 };
 
-export function FilterProvider({ children }) {
-  const [filters, setFilters] = useState(defaultFilters);
+const defaultComparisonFilters = {
+  sex: "All",
+  age_group: "All",
+  region_of_origin: "All",
+  criminal_history: "All",
+  first_booking_type: "All",
+};
 
-  const updateFilter = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+export function FilterProvider({ children }) {
+  const [primaryFilters, setPrimaryFilters] = useState(defaultPrimaryFilters);
+  const [comparisonFilters, setComparisonFilters] = useState(defaultComparisonFilters);
+
+  const updatePrimaryFilter = (key, value) => {
+    setPrimaryFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const updateComparisonFilter = (key, value) => {
+    setComparisonFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   const resetFilters = () => {
-    setFilters(defaultFilters);
+    setPrimaryFilters(defaultPrimaryFilters);
+    setComparisonFilters(defaultComparisonFilters);
   };
 
   const value = useMemo(
-    () => ({ filters, updateFilter, resetFilters, defaultFilters }),
-    [filters]
+    () => ({
+      primaryFilters,
+      comparisonFilters,
+      updatePrimaryFilter,
+      updateComparisonFilter,
+      resetFilters,
+      defaultPrimaryFilters,
+      defaultComparisonFilters,
+    }),
+    [primaryFilters, comparisonFilters]
   );
 
   return React.createElement(FilterContext.Provider, { value }, children);
