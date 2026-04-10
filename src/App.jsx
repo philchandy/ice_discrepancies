@@ -24,7 +24,8 @@ function StoryContent() {
     overallOutcomeShare,
     selectedLengths,
     overallLengths,
-    sankeyData,
+    bookingSankeyData,
+    convictionReleaseSankeyData,
     summary,
     isLoading,
     loadError,
@@ -104,11 +105,22 @@ function StoryContent() {
           </section>
 
           <section className="story-section" id="pathways">
-            <h2>Pathways Through the System</h2>
+            <h2>System Pathways</h2>
             <p className="section-lead">
-              First booking channels into transfer pathways and final outcomes.
+              Compare booking flows with conviction-to-release flows.
             </p>
-            <SankeyDiagram data={sankeyData} filters={filters} />
+            <div className="viz-grid">
+              <SankeyDiagram
+                data={bookingSankeyData}
+                title="Booking to Transfer to Outcome"
+                emptyMessage="No booking pathway data available for the current selection."
+              />
+              <SankeyDiagram
+                data={convictionReleaseSankeyData}
+                title="Conviction (General) to Release Reason (Most General)"
+                emptyMessage="No conviction-to-release Sankey data available."
+              />
+            </div>
           </section>
 
           <section className="story-section" id="insights">

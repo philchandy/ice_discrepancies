@@ -5,6 +5,11 @@ const emptyProcessedData = {
   records: [],
   timeSeries: [],
   facilities: [],
+  convictionReleaseSankey: {
+    nodes: [],
+    links: [],
+    metadata: {},
+  },
 };
 
 const dimensionKeys = [
@@ -62,7 +67,7 @@ function toShare(counts, referenceKeys) {
   return share;
 }
 
-function buildSankey(records) {
+function buildBookingSankey(records) {
   const linksMap = new Map();
 
   const bump = (source, target, value) => {
@@ -105,12 +110,31 @@ export function useData(filters) {
           throw new Error(`Failed to load processed data (${response.status})`);
         }
 
-        const json = await response.json();
+        const [json, sankeyJson] = await Promise.all([
+          response.json(),
+          fetch("/data/convictionReleaseSankey.json", { cache: "no-store" })
+            .then((sankeyResponse) => {
+              if (!sankeyResponse.ok) {
+                throw new Error(`Failed to load conviction-release Sankey data (${sankeyResponse.status})`);
+              }
+              return sankeyResponse.json();
+            })
+            .catch(() => emptyProcessedData.convictionReleaseSankey),
+        ]);
+
         if (!isCancelled) {
           setProcessedData({
             records: Array.isArray(json.records) ? json.records : [],
             timeSeries: Array.isArray(json.timeSeries) ? json.timeSeries : [],
             facilities: Array.isArray(json.facilities) ? json.facilities : [],
+            convictionReleaseSankey: {
+              nodes: Array.isArray(sankeyJson?.nodes) ? sankeyJson.nodes : [],
+              links: Array.isArray(sankeyJson?.links) ? sankeyJson.links : [],
+              metadata:
+                sankeyJson && typeof sankeyJson.metadata === "object" && sankeyJson.metadata !== null
+                  ? sankeyJson.metadata
+                  : {},
+            },
           });
         }
       } catch (error) {
@@ -167,7 +191,8 @@ export function useData(filters) {
       .map((d) => d.detention_length_days)
       .filter((value) => Number.isFinite(value));
 
-    const sankeyData = buildSankey(filtered.length ? filtered : records);
+    const bookingSankeyData = buildBookingSankey(filtered.length ? filtered : records);
+    const convictionReleaseSankeyData = processedData.convictionReleaseSankey;
 
     const summary = {
       filteredCount: filtered.length,
@@ -187,7 +212,8 @@ export function useData(filters) {
       overallOutcomeShare,
       selectedLengths,
       overallLengths,
-      sankeyData,
+      bookingSankeyData,
+      convictionReleaseSankeyData,
       summary,
       isLoading,
       loadError,

@@ -39,3 +39,6 @@ coverage/
 ./src/data/processedData.json
 ./src/data/mockData.json
 ./src/data/facility_enriched.xlsx
+.data
+./data/*
+data/*

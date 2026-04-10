@@ -3,10 +3,20 @@ import * as d3 from "d3";
 import { sankey, sankeyLinkHorizontal } from "d3-sankey";
 import { formatNumber } from "../utils/formatters";
 
-const width = 920;
-const height = 420;
+const width = 1200;
+const height = 560;
 
-export default function SankeyDiagram({ data }) {
+function formatNodeLabel(name) {
+  return String(name)
+    .replace(/^Conviction:\s*/, "")
+    .replace(/^Release:\s*/, "");
+}
+
+export default function SankeyDiagram({
+  data,
+  title = "Pathways (Sankey)",
+  emptyMessage = "No pathway data available for the current selection.",
+}) {
   const [hoveredLink, setHoveredLink] = useState(null);
 
   const sanitizedData = useMemo(() => {
@@ -33,11 +43,11 @@ export default function SankeyDiagram({ data }) {
 
     const generator = sankey()
       .nodeId((d) => d.name)
-      .nodeWidth(16)
-      .nodePadding(18)
+      .nodeWidth(22)
+      .nodePadding(24)
       .extent([
-        [20, 16],
-        [width - 20, height - 18],
+        [28, 20],
+        [width - 28, height - 20],
       ]);
 
     // Clone to keep d3-sankey mutations isolated from React props.
@@ -53,11 +63,11 @@ export default function SankeyDiagram({ data }) {
 
   return (
     <div className="viz-card">
-      <h4 className="viz-title">Pathways: Booking to Outcome (Sankey)</h4>
+      <h4 className="viz-title">{title}</h4>
       {!hasRenderableGraph && (
-        <p>No pathway data available for the current selection.</p>
+        <p>{emptyMessage}</p>
       )}
-      <svg viewBox={`0 0 ${width} ${height}`} width="100%" height="420">
+      <svg viewBox={`0 0 ${width} ${height}`} width="100%" height="560">
         <g>
           {graph.links.map((link, index) => (
             <path
@@ -98,10 +108,10 @@ export default function SankeyDiagram({ data }) {
                 y={(node.y0 + node.y1) / 2}
                 dy="0.35em"
                 textAnchor={node.x0 < width / 2 ? "start" : "end"}
-                fontSize="11"
+                fontSize="13"
                 fill="#2d3b48"
               >
-                {node.name}
+                {formatNodeLabel(node.name)}
               </text>
             </g>
           ))}
