@@ -17,8 +17,8 @@ export default function StackedBar({
 
   const rows = useMemo(
     () => [
-      { group: "Selected Group (A)", shares: selectedOutcomeShare },
-      { group: "Comparison Group (B)", shares: comparisonOutcomeShare },
+      { group: "Group A", shares: selectedOutcomeShare },
+      { group: "Group B", shares: comparisonOutcomeShare },
       { group: "Overall Population", shares: overallOutcomeShare },
     ],
     [comparisonOutcomeShare, overallOutcomeShare, selectedOutcomeShare]
@@ -32,7 +32,7 @@ export default function StackedBar({
 
   return (
     <div className="viz-card">
-      <h4 className="viz-title">Outcome Composition (100% Stacked)</h4>
+      <h4 className="viz-title">Outcome Composition</h4>
       <svg viewBox={`0 0 ${width} ${height}`} width="100%" height="280">
         {rows.map((row) => {
           let cumulative = 0;

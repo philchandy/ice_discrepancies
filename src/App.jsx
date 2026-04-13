@@ -75,7 +75,7 @@ function StoryContent() {
             <p className="section-lead">
               A high-level look at detention volume trends and facility footprint.
             </p>
-            <div className="viz-grid two-col">
+            <div className="viz-grid">
               <LineChart
                 data={timeSeries}
                 yearStart={primaryFilters.yearStart}

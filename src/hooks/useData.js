@@ -198,8 +198,13 @@ export function useData(primaryFilters, comparisonFilters) {
       (group) => group.length,
       (d) => d.facility_id
     );
+    const yearFilteredRecords = records.filter(
+      (record) =>
+        record.booking_year >= yearBounds.yearStart &&
+        record.booking_year <= yearBounds.yearEnd
+    );
     const facilityRollupOverall = d3.rollup(
-      records,
+      yearFilteredRecords,
       (group) => group.length,
       (d) => d.facility_id
     );
