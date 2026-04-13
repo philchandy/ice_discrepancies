@@ -25,13 +25,13 @@ export default function InsightPanel({
 
   const comparisonRemovedSentence =
     comparisonRemovedDelta >= 0
-      ? `Comparison group members were ${(comparisonRemovedDelta * 100).toFixed(1)}% more likely to be removed than average.`
-      : `Comparison group members were ${Math.abs(comparisonRemovedDelta * 100).toFixed(1)}% less likely to be removed than average.`;
+      ? `Group B members were ${(comparisonRemovedDelta * 100).toFixed(1)}% more likely to be removed than average.`
+      : `Group B members were ${Math.abs(comparisonRemovedDelta * 100).toFixed(1)}% less likely to be removed than average.`;
 
   const comparisonDetentionSentence =
     comparisonDetainedDelta >= 0
-      ? `The comparison group shows a ${(comparisonDetainedDelta * 100).toFixed(1)}% higher share still detained.`
-      : `The comparison group shows a ${Math.abs(comparisonDetainedDelta * 100).toFixed(1)}% lower share still detained.`;
+      ? `Group B shows a ${(comparisonDetainedDelta * 100).toFixed(1)}% higher share still detained.`
+      : `Group B shows a ${Math.abs(comparisonDetainedDelta * 100).toFixed(1)}% lower share still detained.`;
 
   return (
     <div className="viz-card">
@@ -55,13 +55,13 @@ export default function InsightPanel({
         <article className="insight-block">
           <p>Dominant Outcome (A)</p>
           <div className="insight-value">{summary.dominantOutcome}</div>
-          <p>highest share in selected group A</p>
+          <p>highest share in Group A</p>
         </article>
 
         <article className="insight-block">
           <p>Dominant Outcome (B)</p>
           <div className="insight-value">{summary.comparisonDominantOutcome}</div>
-          <p>highest share in comparison group B</p>
+          <p>highest share in Group B</p>
         </article>
       </div>
 

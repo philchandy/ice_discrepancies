@@ -19,13 +19,13 @@ export default function LineChart({ data, yearStart = 2020, yearEnd = 2025 }) {
     () => [
       {
         key: "selected",
-        label: "Selected Group (A)",
+        label: "Group A",
         color: "#0f5a6b",
         values: data?.selected || [],
       },
       {
         key: "comparison",
-        label: "Comparison Group (B)",
+        label: "Group B",
         color: "#6c80b5",
         values: data?.comparison || [],
       },

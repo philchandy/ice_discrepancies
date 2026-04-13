@@ -52,13 +52,13 @@ export default function BoxPlot({ selectedLengths, comparisonLengths, overallLen
     () => [
       {
         key: "selected",
-        label: "Selected Group (A)",
+        label: "Group A",
         values: selectedLengths,
         fill: "#83b8c2",
       },
       {
         key: "comparison",
-        label: "Comparison Group (B)",
+        label: "Group B",
         values: comparisonLengths,
         fill: "#c8d6f0",
       },

@@ -10,7 +10,7 @@ const margin = { top: 12, right: 14, bottom: 18, left: 14 };
 const mapGroups = [
   {
     key: "selected",
-    label: "Selected Group (A)",
+    label: "Group A",
     countKey: "selectedCount",
     color: "#0f5a6b",
     stroke: "#06343f",
@@ -19,7 +19,7 @@ const mapGroups = [
   },
   {
     key: "comparison",
-    label: "Comparison Group (B)",
+    label: "Group B",
     countKey: "comparisonCount",
     color: "#6c80b5",
     stroke: "#41526f",
@@ -119,11 +119,14 @@ export default function MapPlaceholder({ data }) {
 
   const maxBubbleCount = radiusScale.domain()[1] ?? 1;
   const sizeLegendValues = useMemo(
-    () => [
-      Math.max(1, Math.round(maxBubbleCount * 0.25)),
-      Math.max(1, Math.round(maxBubbleCount * 0.6)),
-      Math.max(1, Math.round(maxBubbleCount)),
-    ],
+    () =>
+      Array.from(
+        new Set([
+          Math.max(1, Math.round(maxBubbleCount * 0.25)),
+          Math.max(1, Math.round(maxBubbleCount * 0.6)),
+          Math.max(1, Math.round(maxBubbleCount)),
+        ])
+      ),
     [maxBubbleCount]
   );
 

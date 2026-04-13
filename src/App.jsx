@@ -88,7 +88,7 @@ function StoryContent() {
           <section className="story-section" id="outcomes-comparison">
             <h2>Outcomes Comparison</h2>
             <p className="section-lead">
-              Compare outcome composition for selected group A, comparison group B,
+              Compare outcome composition for Group A, Group B,
               and the overall population.
             </p>
             <StackedBar
