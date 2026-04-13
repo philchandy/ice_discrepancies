@@ -23,6 +23,8 @@ export default function Filters({ options }) {
     []
   );
 
+  const yearMin = Math.max(2022, options.yearBounds?.min ?? 2022);
+
   return (
     <div className="filters">
       <h3>Demographic Selectors</h3>
@@ -74,14 +76,14 @@ export default function Filters({ options }) {
         <div className="year-range">
           <input
             type="number"
-            min={options.yearBounds?.min}
+            min={yearMin}
             max={primaryFilters.yearEnd}
             value={primaryFilters.yearStart}
             onChange={(event) => updatePrimaryFilter("yearStart", Number(event.target.value))}
           />
           <input
             type="number"
-            min={primaryFilters.yearStart}
+            min={Math.max(yearMin, primaryFilters.yearStart)}
             max={options.yearBounds?.max}
             value={primaryFilters.yearEnd}
             onChange={(event) => updatePrimaryFilter("yearEnd", Number(event.target.value))}

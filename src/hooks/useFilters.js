@@ -8,7 +8,7 @@ const defaultPrimaryFilters = {
   region_of_origin: "All",
   criminal_history: "All",
   first_booking_type: "All",
-  yearStart: 2004,
+  yearStart: 2022,
   yearEnd: 2025,
 };
 
@@ -20,12 +20,32 @@ const defaultComparisonFilters = {
   first_booking_type: "All",
 };
 
+const MIN_YEAR_CAP = 2022;
+
 export function FilterProvider({ children }) {
   const [primaryFilters, setPrimaryFilters] = useState(defaultPrimaryFilters);
   const [comparisonFilters, setComparisonFilters] = useState(defaultComparisonFilters);
 
   const updatePrimaryFilter = (key, value) => {
-    setPrimaryFilters((prev) => ({ ...prev, [key]: value }));
+    setPrimaryFilters((prev) => {
+      if (key === "yearStart") {
+        const nextStart = Math.max(MIN_YEAR_CAP, Number(value));
+        return {
+          ...prev,
+          yearStart: Math.min(nextStart, prev.yearEnd),
+        };
+      }
+
+      if (key === "yearEnd") {
+        const nextEnd = Math.max(MIN_YEAR_CAP, Number(value));
+        return {
+          ...prev,
+          yearEnd: Math.max(nextEnd, prev.yearStart),
+        };
+      }
+
+      return { ...prev, [key]: value };
+    });
   };
 
   const updateComparisonFilter = (key, value) => {

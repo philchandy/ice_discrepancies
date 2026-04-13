@@ -76,7 +76,11 @@ function StoryContent() {
               A high-level look at detention volume trends and facility footprint.
             </p>
             <div className="viz-grid two-col">
-              <LineChart data={timeSeries} />
+              <LineChart
+                data={timeSeries}
+                yearStart={primaryFilters.yearStart}
+                yearEnd={primaryFilters.yearEnd}
+              />
               <MapPlaceholder data={facilities} />
             </div>
           </section>

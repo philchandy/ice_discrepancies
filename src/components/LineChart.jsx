@@ -7,10 +7,13 @@ const width = 520;
 const height = 300;
 const margin = { top: 16, right: 20, bottom: 36, left: 48 };
 
-export default function LineChart({ data }) {
+export default function LineChart({ data, yearStart = 2020, yearEnd = 2025 }) {
   const [hovered, setHovered] = useState(null);
   const xAxisRef = useRef(null);
   const yAxisRef = useRef(null);
+
+  const clampedYearStart = Math.min(yearStart, yearEnd);
+  const clampedYearEnd = Math.max(yearStart, yearEnd);
 
   const series = useMemo(
     () => [
@@ -36,18 +39,25 @@ export default function LineChart({ data }) {
     [data]
   );
 
+  const displayedSeries = useMemo(
+    () =>
+      series.map((group) => ({
+        ...group,
+        values: group.values.filter(
+          (point) => point.year >= clampedYearStart && point.year <= clampedYearEnd
+        ),
+      })),
+    [clampedYearEnd, clampedYearStart, series]
+  );
+
   const allPoints = useMemo(
-    () => series.flatMap((group) => group.values),
-    [series]
+    () => displayedSeries.flatMap((group) => group.values),
+    [displayedSeries]
   );
 
   const xScale = useMemo(() => {
-    const years = allPoints.map((d) => d.year);
-    return createLinearScale(
-      [d3.min(years) ?? 2018, d3.max(years) ?? 2025],
-      [margin.left, width - margin.right]
-    );
-  }, [allPoints]);
+    return createLinearScale([clampedYearStart, clampedYearEnd], [margin.left, width - margin.right]);
+  }, [clampedYearEnd, clampedYearStart]);
 
   const yScale = useMemo(() => {
     const max = d3.max(allPoints, (d) => d.population) ?? 100;
@@ -78,7 +88,7 @@ export default function LineChart({ data }) {
         <g className="axis" ref={xAxisRef} transform={`translate(0, ${height - margin.bottom})`} />
         <g className="axis" ref={yAxisRef} transform={`translate(${margin.left}, 0)`} />
 
-        {series.map((group) => (
+        {displayedSeries.map((group) => (
           <g key={group.key}>
             <path
               d={lineGenerator(group.values) || ""}
@@ -124,7 +134,7 @@ export default function LineChart({ data }) {
       </svg>
 
       <div className="legend">
-        {series.map((group) => (
+        {displayedSeries.map((group) => (
           <span key={group.key} className="legend-item">
             <span className="legend-swatch" style={{ backgroundColor: group.color }} />
             {group.label}
