@@ -214,6 +214,12 @@ p {
   box-shadow: var(--shadow);
   padding: 0.8rem;
   position: relative;
+  overflow: visible;
+  z-index: 0;
+}
+
+.viz-card:hover {
+  z-index: 10;
 }
 
 .viz-title {
