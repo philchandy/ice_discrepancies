@@ -13,6 +13,7 @@
     "d3-sankey": "^0.12.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^7.14.1",
     "topojson": "^3.0.2",
     "topojson-client": "^3.1.0",
     "us-atlas": "^3.0.1"

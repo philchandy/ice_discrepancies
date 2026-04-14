@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Hero from "./components/Hero";
 import Filters from "./components/Filters";
 import LineChart from "./components/LineChart";
@@ -8,6 +9,7 @@ import BoxPlot from "./components/BoxPlot";
 import SankeyDiagram from "./components/SankeyDiagram";
 import InsightPanel from "./components/InsightPanel";
 import Methodology from "./components/Methodology";
+import Infographic from "./components/Infographic";
 import { FilterProvider, useFilters } from "./hooks/useFilters";
 import { useData } from "./hooks/useData";
 
@@ -156,10 +158,32 @@ function StoryContent() {
   );
 }
 
+const Navigation = () => {
+  return (
+    <nav className="app-navigation">
+      <div className="nav-container">
+        <Link to="/" className="nav-link">Main Analysis</Link>
+        <Link to="/infographic" className="nav-link">Infographic</Link>
+      </div>
+    </nav>
+  );
+};
+
 export default function App() {
   return (
-    <FilterProvider>
-      <StoryContent />
-    </FilterProvider>
+    <Router>
+      <Navigation />
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <FilterProvider>
+              <StoryContent />
+            </FilterProvider>
+          }
+        />
+        <Route path="/infographic" element={<Infographic />} />
+      </Routes>
+    </Router>
   );
 }
