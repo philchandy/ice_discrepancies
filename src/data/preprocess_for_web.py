@@ -15,7 +15,7 @@ STAYS_CSV   = BASE / "deportation_data_project_src" / "detention-stays-latest.cs
 LOOKUP_CSV  = BASE / "lookups" / "factory_code_map_with_coordinates.csv"
 OUTPUT_JSON = BASE.parent.parent / "public" / "data" / "processedData.json"
 
-SAMPLE_SIZE = 100_000
+SAMPLE_SIZE = 40_000
 RANDOM_SEED = 42
 
 # ── region lookup ──────────────────────────────────────────────────────────────
