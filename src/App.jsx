@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from "react-router-dom";
 import Hero from "./components/Hero";
 import Filters from "./components/Filters";
 import LineChart from "./components/LineChart";
@@ -67,6 +67,7 @@ function StoryContent() {
       >
         <aside className="sidebar">
           <Filters options={filterOptions} />
+          <Navigation inline />
         </aside>
 
         <main className="story-content">
@@ -88,16 +89,6 @@ function StoryContent() {
             </div>
           </section>
           
-          <section className="story-section" id="vignettes">
-            <h2>Individual Cases</h2>
-            <p className="section-lead">
-              Select a case to read a documented account of one individual's
-              experience in the detention system. Each vignette is drawn from
-              named, reported sources.
-            </p>
-            <Vignettes />
-          </section>
-
           <section className="story-section" id="outcomes-comparison">
             <h2>Outcomes Comparison</h2>
             <p className="section-lead">
@@ -152,6 +143,16 @@ function StoryContent() {
               summary={summary}
             />
           </section>
+
+          <section className="story-section" id="vignettes">
+            <h2>Individual Cases</h2>
+            <p className="section-lead">
+              Select a case to read a documented account of one individual's
+              experience in the detention system. Each vignette is drawn from
+              named, reported sources.
+            </p>
+            <Vignettes />
+          </section>
           
           <Methodology />
 
@@ -169,21 +170,65 @@ function StoryContent() {
   );
 }
 
-const Navigation = () => {
+const Navigation = ({ inline = false }) => {
   return (
-    <nav className="app-navigation">
+    <nav className={`app-navigation${inline ? " app-navigation-inline" : ""}`}>
       <div className="nav-container">
-        <Link to="/" className="nav-link">Main Analysis</Link>
-        <Link to="/infographic" className="nav-link">Infographic</Link>
+        <NavLink to="/" end className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
+          {({ isActive }) => (
+            <>
+              <span>Main Analysis</span>
+              {isActive && <img className="nav-link__arrow" src="/arrow-right-svgrepo-com.svg" alt="Current page" />}
+            </>
+          )}
+        </NavLink>
+        <NavLink to="/infographic" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
+          {({ isActive }) => (
+            <>
+              <span>Infographic</span>
+              {isActive && <img className="nav-link__arrow" src="/arrow-right-svgrepo-com.svg" alt="Current page" />}
+            </>
+          )}
+        </NavLink>
       </div>
     </nav>
   );
 };
 
-export default function App() {
+function AppContent() {
+  const location = useLocation();
+  const [showNavigation, setShowNavigation] = useState(location.pathname !== "/");
+
+  useEffect(() => {
+    if (location.pathname !== "/") {
+      setShowNavigation(true);
+      return;
+    }
+
+    const evaluateVisibility = () => {
+      const hero = document.querySelector(".hero");
+      if (!hero) {
+        setShowNavigation(true);
+        return;
+      }
+
+      const heroBottom = hero.offsetTop + hero.offsetHeight;
+      setShowNavigation(window.scrollY >= heroBottom - 8);
+    };
+
+    evaluateVisibility();
+    window.addEventListener("scroll", evaluateVisibility, { passive: true });
+    window.addEventListener("resize", evaluateVisibility);
+
+    return () => {
+      window.removeEventListener("scroll", evaluateVisibility);
+      window.removeEventListener("resize", evaluateVisibility);
+    };
+  }, [location.pathname]);
+
   return (
-    <Router>
-      <Navigation />
+    <>
+      {showNavigation && location.pathname !== "/" && location.pathname !== "/infographic" && <Navigation />}
       <Routes>
         <Route
           path="/"
@@ -195,6 +240,14 @@ export default function App() {
         />
         <Route path="/infographic" element={<Infographic />} />
       </Routes>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }

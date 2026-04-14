@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
+import { NavLink } from 'react-router-dom';
 
 const PERSON_ICON_PATH = 'M291.299,116.517h-3.501c10.635-12.36,17.102-28.378,17.102-45.915C304.899,31.666,273.219,0,234.305,0c-38.93,0-70.584,31.666-70.584,70.602c0,17.537,6.477,33.555,17.093,45.915h-3.51c-19.645,0-35.626,15.997-35.626,35.645v117.105c0,19.648,15.982,35.633,35.626,35.633h1.372v128.07c0,20.332,10.697,35.645,24.884,35.645h61.468c14.208,0,24.908-15.312,24.908-35.645v-128.07h1.363c19.642,0,35.639-15.984,35.639-35.633V152.161C326.932,132.514,310.94,116.517,291.299,116.517z';
 const PERSON_ICON_VIEWBOX = 468.614;
@@ -912,6 +913,26 @@ const Infographic = () => {
         <div className="story-layout infographic-layout">
           <aside className="sidebar infographic-sidebar">
             <FilterControls rows={rows} filters={filters} onFilterChange={handleFilterChange} />
+            <nav className="app-navigation app-navigation-inline">
+              <div className="nav-container">
+                <NavLink to="/" end className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                  {({ isActive }) => (
+                    <>
+                      <span>Main Analysis</span>
+                      {isActive && <img className="nav-link__arrow" src="/arrow-right-svgrepo-com.svg" alt="Current page" />}
+                    </>
+                  )}
+                </NavLink>
+                <NavLink to="/infographic" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+                  {({ isActive }) => (
+                    <>
+                      <span>Infographic</span>
+                      {isActive && <img className="nav-link__arrow" src="/arrow-right-svgrepo-com.svg" alt="Current page" />}
+                    </>
+                  )}
+                </NavLink>
+              </div>
+            </nav>
           </aside>
 
           <main style={infographicStyles.contentColumn}>

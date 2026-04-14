@@ -17,40 +17,88 @@
 
 /* Navigation Styles */
 .app-navigation {
-  background: var(--paper);
-  border-bottom: 1px solid var(--line);
-  padding: 0;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 8px rgba(10, 17, 26, 0.04);
+  position: fixed;
+  right: 1.1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 120;
+}
+
+.app-navigation-inline {
+  position: static;
+  right: auto;
+  top: auto;
+  transform: none;
+  z-index: auto;
+  margin-top: 1.35rem;
 }
 
 .nav-container {
-  width: min(1200px, 94vw);
-  margin: 0 auto;
+  width: 172px;
   display: flex;
-  gap: 2rem;
-  padding: 1rem 0;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+}
+
+.app-navigation-inline .nav-container {
+  width: 100%;
 }
 
 .nav-link {
-  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.52rem 0;
   text-decoration: none;
   color: var(--ink);
-  font-weight: 500;
-  border-bottom: 3px solid transparent;
+  font-weight: 700;
+  font-size: 1rem;
+  border: 0;
   transition: all 0.2s ease;
+}
+
+.nav-link + .nav-link {
+  border-top: 1px solid var(--line);
 }
 
 .nav-link:hover {
   color: var(--accent);
-  border-bottom-color: var(--accent);
 }
 
 .nav-link.active {
   color: var(--accent);
-  border-bottom-color: var(--accent);
+}
+
+.nav-link__arrow {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  opacity: 0.95;
+}
+
+@media (max-width: 1024px) {
+  .app-navigation {
+    right: 0.75rem;
+    top: auto;
+    bottom: 0.75rem;
+    transform: none;
+  }
+
+  .nav-container {
+    width: 160px;
+  }
+
+  .nav-link {
+    font-size: 0.94rem;
+    padding: 0.45rem 0;
+  }
+
+  .nav-link__arrow {
+    width: 13px;
+    height: 13px;
+  }
 }
 
 * {
@@ -600,11 +648,11 @@ svg text {
 }
 
 .vignette-detail__header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  column-gap: 0.75rem;
+  row-gap: 0.5rem;
 }
 
 .vignette-detail__name {
@@ -627,9 +675,11 @@ svg text {
   align-items: flex-end;
   gap: 0.4rem;
   flex-shrink: 0;
+  justify-self: end;
 }
 
 .vignette-detail__outcome-badge {
+  display: inline-flex;
   font-size: 0.72rem;
   font-weight: 700;
   color: #fff;
@@ -637,6 +687,7 @@ svg text {
   border-radius: 6px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .vignette-detail__days {
@@ -717,8 +768,13 @@ svg text {
     max-height: 280px;
   }
 
+  .vignette-detail__header {
+    grid-template-columns: 1fr;
+  }
+
   .vignette-detail__meta {
     align-items: flex-start;
+    justify-self: start;
   }
 
   .vignette-detail__days {
