@@ -42,3 +42,6 @@ coverage/
 .data
 ./data/*
 data/*
+
+# local archival/source notebook + scripts for infographic generation
+src/data/sarah/
