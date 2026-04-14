@@ -919,7 +919,7 @@ const Infographic = () => {
                 <NavLink to="/" end className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
                   {({ isActive }) => (
                     <>
-                      <span>Main Analysis</span>
+                      <span>Comparative Analysis</span>
                       {isActive && <img className="nav-link__arrow" src="/arrow-right-svgrepo-com.svg" alt="Current page" />}
                     </>
                   )}
