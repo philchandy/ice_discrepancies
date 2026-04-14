@@ -564,6 +564,7 @@ const BondAndDetentionCard = ({ row }) => {
   const CALENDAR_GLYPH_PATH = '/data/calendar_glyph.png';
   const CASH_STACK_PATH = '/data/cash_stack.png';
   const ZERO_BOND_PATH = '/data/zero_bond.png';
+  const AMERICA_PATH = '/data/america.png';
   const cash_offset = 5;
   const max_cash_stacks = 10;
 
