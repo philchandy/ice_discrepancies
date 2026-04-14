@@ -36,7 +36,7 @@ export default function Methodology() {
                 affect subgroup estimates.
             </p>
             <p className="methodology-meta">
-                Suggested citation: Government data provided by ICE in response to a
+                Government data provided by ICE in response to a
                 FOIA request, processed by the Deportation Data Project, and analyzed by
                 this project team.
             </p>

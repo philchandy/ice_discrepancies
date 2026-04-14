@@ -1,0 +1,39 @@
+
+Must-do tonight
+* Run everything through ChatGPT to find what the speed optimization are. 
+
+
+Thoughts for Phil
+
+* Give him the dataset name (in Drive) to use
+
+
+Sankey Chart
+* Define Sankey starts and stops
+	* Start: 
+	* Middle
+	* End
+
+
+
+###################################################################
+				FUTURE TO DOS
+###################################################################
+* is the PWA info useful?
+
+
+
+What columns are the "meatiest" for DEMOGRAPHICS
+* gender
+* age_group
+* citizenship_country
+* citizenship_country_region? (could be a good summarizer/equalizer). 
+	* TODO - could potentially break down further into groups of countries with similar socioeconomic / politics / etc.
+
+
+
+
+What columns suck:
+* ethnicity (high "Unknown") --> use citizenship_country
+* citizenship_country_region
+* entry_status is not GREAT. It has about 50% filled. 
