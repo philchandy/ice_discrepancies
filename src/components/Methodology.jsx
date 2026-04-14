@@ -12,7 +12,7 @@ export default function Methodology() {
             <ul className="methodology-list">
                 <li>
                     The raw dataset contains hundreds of thousands of records, so the UI
-                    uses a 20,000-row random sample for responsive filtering.
+                    uses a 100,000-row random sample for responsive filtering.
                 </li>
                 <li>
                     Yearly trend totals and facility totals are computed from the full
