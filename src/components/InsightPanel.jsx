@@ -15,18 +15,18 @@ export default function InsightPanel({
 
   const removedSentence =
     removedDelta >= 0
-      ? `People in this group were ${(removedDelta * 100).toFixed(1)}% more likely to be removed than average.`
-      : `People in this group were ${Math.abs(removedDelta * 100).toFixed(1)}% less likely to be removed than average.`;
+      ? `People in Group A were ${(removedDelta * 100).toFixed(1)}% more likely to be removed than average.`
+      : `People in Group A were ${Math.abs(removedDelta * 100).toFixed(1)}% less likely to be removed than average.`;
 
   const detentionSentence =
     detainedDelta >= 0
-      ? `The group shows a ${(detainedDelta * 100).toFixed(1)}% higher share still detained.`
-      : `The group shows a ${Math.abs(detainedDelta * 100).toFixed(1)}% lower share still detained.`;
+      ? `Group A shows a ${(detainedDelta * 100).toFixed(1)}% higher share still detained.`
+      : `Group A shows a ${Math.abs(detainedDelta * 100).toFixed(1)}% lower share still detained.`;
 
   const comparisonRemovedSentence =
     comparisonRemovedDelta >= 0
-      ? `Group B members were ${(comparisonRemovedDelta * 100).toFixed(1)}% more likely to be removed than average.`
-      : `Group B members were ${Math.abs(comparisonRemovedDelta * 100).toFixed(1)}% less likely to be removed than average.`;
+      ? `People in Group B were ${(comparisonRemovedDelta * 100).toFixed(1)}% more likely to be removed than average.`
+      : `People in Group B were ${Math.abs(comparisonRemovedDelta * 100).toFixed(1)}% less likely to be removed than average.`;
 
   const comparisonDetentionSentence =
     comparisonDetainedDelta >= 0

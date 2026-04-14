@@ -119,8 +119,8 @@ function StoryContent() {
             <div className="viz-grid">
               <SankeyDiagram
                 data={bookingSankeyData}
-                title="Booking to Transfer to Outcome"
-                emptyMessage="No booking pathway data available for the current selection."
+                title="Group A: Booking to Transfer to Outcome"
+                emptyMessage="No Group A booking pathway data available for the current selection."
               />
               <SankeyDiagram
                 data={convictionReleaseSankeyData}
