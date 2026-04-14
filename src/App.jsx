@@ -10,6 +10,7 @@ import InsightPanel from "./components/InsightPanel";
 import Methodology from "./components/Methodology";
 import { FilterProvider, useFilters } from "./hooks/useFilters";
 import { useData } from "./hooks/useData";
+import Vignettes from "./components/Vignettes.jsx";
 
 function StoryContent() {
   const [isVizVisible, setIsVizVisible] = useState(false);
@@ -83,6 +84,16 @@ function StoryContent() {
               />
               <MapPlaceholder data={facilities} />
             </div>
+          </section>
+          
+          <section className="story-section" id="vignettes">
+            <h2>Individual Cases</h2>
+            <p className="section-lead">
+              Select a case to read a documented account of one individual's
+              experience in the detention system. Each vignette is drawn from
+              named, reported sources.
+            </p>
+            <Vignettes />
           </section>
 
           <section className="story-section" id="outcomes-comparison">
