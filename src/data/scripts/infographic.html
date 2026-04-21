@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detention Population Infographic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    :root {
+      --page-bg: #efe2c6;
+      --infographic-bg: #0f2e5e;
+      --panel-bg: #f8f4ea;
+      --panel-accent: #f8f4ea;
+      --text-dark: #12223d;
+      --white: #ffffff;
+      --border: #183056;
+      --stay-likely: #1c4e9b;
+      --stay-possible: #90b9ff;
+      --detained-again: #f4a6a6;
+      --deported-country: #6b1f2b;
+      --deported-other: #b9b0a1;
+      --female-pink: #f8bfd2;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Manrope", sans-serif;
+      background: var(--page-bg);
+      color: var(--white);
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 1410px;
+      background: var(--infographic-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin: 4px 0 16px 0;
+      line-height: 1.15;
+      font-weight: 500;
+      font-family: "Libre Baskerville", serif;
+      color: var(--white);
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      box-sizing: border-box;
+      background: var(--panel-bg);
+      color: var(--text-dark);
+    }
+
+    .controls {
+      margin-bottom: 12px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .filter-group label {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      font-family: "Libre Baskerville", serif;
+    }
+
+    .filter-group select {
+      font-size: 16px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--text-dark);
+    }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: 20% 40% 40%;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stat-box {
+      background: var(--panel-accent);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 210px;
+      box-sizing: border-box;
+      color: var(--text-dark);
+      font-size: 22px;
+      line-height: 1.3;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    #crimeBoxPrimary svg,
+    #crimeBoxSecondary svg {
+      margin-top: auto;
+    }
+
+    .section-title {
+      font-size: 32px;
+      margin: 0 0 10px 0;
+      font-weight: 500;
+      font-family: "Libre Baskerville", serif;
+      color: var(--white);
+    }
+
+    .middle-box {
+      margin-bottom: 12px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      color: var(--text-dark);
+    }
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 600px 1fr;
+      gap: 12px;
+    }
+
+    #bondCard {
+      width: 600px;
+    }
+
+    #detentionCard {
+      min-width: 760px;
+    }
+
+    .label {
+      font-size: 25px;
+      font-weight: 500;
+      margin: 0 0 8px 0;
+      font-family: "Libre Baskerville", serif;
+    }
+
+    .small {
+      font-size: 22px;
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+      gap: 14px;
+      margin-top: 10px;
+      font-size: 20px;
+      color: var(--text-dark);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid #ffffff66;
+      flex: 0 0 14px;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .middle-box svg {
+      min-height: 360px;
+      border-radius: 8px;
+    }
+
+    .middle-box .section-title {
+      color: var(--text-dark);
+    }
+
+    .info-card {
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .bond-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 250px;
+    }
+
+    #bondTextBlock {
+      min-height: 98px;
+    }
+
+    #bondVisualRow {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: end;
+      min-height: 230px;
+      gap: 6px;
+    }
+
+    #bondStackArea {
+      position: relative;
+      height: 220px;
+    }
+
+    .bond-stack-image {
+      position: absolute;
+      left: 6px;
+      width: 184px;
+      height: 184px;
+      object-fit: contain;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    #bondPieWrap {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 220px;
+    }
+
+    #bondSvg {
+      width: 100%;
+      max-width: 340px;
+      flex: 0 0 auto;
+    }
+
+    .meta-line {
+      font-size: 25px;
+      margin: 0;
+      color: var(--text-dark);
+    }
+
+    .detention-block {
+      margin-top: 26px;
+    }
+
+    .detention-block .meta-line {
+      margin-bottom: 8px;
+    }
+
+    .month-glyph-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      min-height: 62px;
+    }
+
+    .month-glyph {
+      width: 54px;
+      height: 54px;
+      object-fit: cover;
+      object-position: left center;
+      display: block;
+      border-radius: 4px;
+    }
+
+    .crime-tooltip {
+      position: absolute;
+      pointer-events: none;
+      z-index: 1000;
+      max-width: 320px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #183056;
+      background: #ffffff;
+      color: #12223d;
+      font-size: 12px;
+      line-height: 1.35;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transition: opacity 100ms ease-out;
+      white-space: pre-line;
+    }
+
+    @media (max-width: 1500px) {
+      .container {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 980px) {
+      h1,
+      .section-title,
+      .label {
+        font-size: clamp(24px, 4.5vw, 40px);
+      }
+
+      .small,
+      .stat-box,
+      .meta-line {
+        font-size: clamp(15px, 2.4vw, 22px);
+      }
+
+      .top-grid,
+      .filters,
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .legend {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="panel controls">
+      <div class="filters">
+        <div class="filter-group">
+          <label for="ageSelect">Age group</label>
+          <select id="ageSelect" aria-label="Select age group"></select>
+        </div>
+        <div class="filter-group">
+          <label for="genderSelect">Gender</label>
+          <select id="genderSelect" aria-label="Select gender"></select>
+        </div>
+        <div class="filter-group">
+          <label for="subRegionSelect">Sub-region</label>
+          <select id="subRegionSelect" aria-label="Select sub-region"></select>
+        </div>
+        <div class="filter-group">
+          <label for="criminalStatusSelect">Criminal status</label>
+          <select id="criminalStatusSelect" aria-label="Select criminal status"></select>
+        </div>
+      </div>
+    </section>
+
+    <h1 id="selectionHeading">For the detained population you selected...</h1>
+
+    <section class="top-grid">
+      <div class="stat-box" id="genderBox"></div>
+      <div class="stat-box" id="crimeBoxPrimary"></div>
+      <div class="stat-box" id="crimeBoxSecondary"></div>
+    </section>
+
+    <section class="middle-box">
+      <h2 class="section-title" id="outcomeTitle">For every 100 people detained in this group...</h2>
+      <svg id="midSvg" viewBox="0 0 1280 430" aria-label="Population outcomes pictograph"></svg>
+      <div class="legend" id="outcomeLegend"></div>
+    </section>
+
+    <section class="bottom-grid">
+      <article class="panel info-card" id="bondCard">
+        <div class="bond-layout">
+          <div id="bondTextBlock">
+          <p class="label" id="bondText"></p>
+          <p class="small" id="bondValue"></p>
+          </div>
+          <div id="bondVisualRow">
+          <div id="bondStackArea" aria-hidden="true"></div>
+          <div id="bondPieWrap">
+          <svg id="bondSvg" viewBox="0 0 360 260" aria-label="Bond share chart"></svg>
+          </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel info-card" id="detentionCard">
+        <p class="label">During the average detention:</p>
+        <p class="meta-line" id="transferText"></p>
+        <p class="meta-line" id="milesText"></p>
+        <div class="detention-block">
+          <p class="meta-line" id="detentionDaysDeportText"></p>
+          <div class="month-glyph-row" id="deportMonthGlyphRow" aria-hidden="true"></div>
+        </div>
+        <div class="detention-block">
+          <p class="meta-line" id="detentionDaysReleaseText"></p>
+          <div class="month-glyph-row" id="releaseMonthGlyphRow" aria-hidden="true"></div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const DATA_PATH = "./stats_df.json";
+
+    const dims = {
+      age_group: "#ageSelect",
+      gender: "#genderSelect",
+      citizenship_country_sub_region: "#subRegionSelect",
+      conviction_charge_badness: "#criminalStatusSelect"
+    };
+
+    const outcomeColors = {
+      "Released to USA - long term residence likely": "#3bb143",
+      "Released to USA - long term residence possible": "#daa520",
+      "Released to USA - will be detained again": "#777b7e",
+      "Awaiting Deportation": "#48494b",
+      "Deported": "#000000"
+    };
+
+    const outcomeLabels = {
+      "Released to USA - long term residence likely": "Stay in USA likely",
+      "Released to USA - long term residence possible": "Stay in USA possible",
+      "Released to USA - will be detained again": "Will be detained again",
+      "Awaiting Deportation": "Awaiting Deportation",
+      "Deported": "Deported"
+    };
+
+    const outcomeOrder = [
+      "Released to USA - long term residence likely",
+      "Released to USA - long term residence possible",
+      "Released to USA - will be detained again",
+      "Awaiting Deportation",
+      "Deported"
+    ];
+    const outcomeKeyAliases = {
+      "Released to USA - long term residence likely": ["Released to USA - long term residence likely"],
+      "Released to USA - long term residence possible": ["Released to USA - long term residence possible"],
+      "Released to USA - will be detained again": [
+        "Released to USA - will be detained again",
+        "Released to USA - will be detained at a later date"
+      ],
+      "Awaiting Deportation": ["Awaiting Deportation"],
+      "Deported": ["Deported"]
+    };
+    const money = d3.format("$,d");
+    const numberWithCommas = d3.format(",d");
+    const DAYS_PER_MONTH = 30;
+    const CALENDAR_GLYPH_PATH = "./calendar_glyph.png";
+    const CASH_STACK_PATH = "./cash_stack.png";
+    const ZERO_BOND_PATH = "./zero_bond.png";
+    const cash_offset = 6;
+    const max_cash_stacks = 13;
+
+    const fallbackRow = {
+      age_group: "All",
+      gender: "All",
+      citizenship_country_sub_region: "All",
+      conviction_charge_badness: "All",
+      n_records: 100,
+      male_percent: 90,
+      female_percent: 10,
+      age_distribution: {"20": 10, "25": 20, "30": 25, "35": 20, "40": 15, "45": 10},
+      crime_distribution: {"0 - None": 79, "1 - Minimal": 7, "2 - Low": 5, "3 - Moderate": 4, "4 - High": 3, "5 - Extreme": 2},
+      "Released to USA - long term residence likely": 2,
+      "Released to USA - long term residence possible": 2,
+      "Released to USA - will be detained at a later date": 16,
+      "Released to USA - will likely be detained again": 20,
+      "Awaiting Deportation": 0,
+      "Deported": 60,
+      "Bond Percentage": 30,
+      "Average Bond Paid": 10000,
+      "Number Transfers": 3,
+      "Miles Traveled": 2000,
+      "Days spent prior to deportation": 30,
+      "Days spent prior to release": 20
+    };
+
+    const toNum = (value) => {
+      if (value === null || value === undefined || value === "" || value === "<NA>") return null;
+      const parsed = Number(value);
+      return Number.isNaN(parsed) ? null : parsed;
+    };
+
+    const getCrimeStatusTooltip = () =>
+      d3.select("body")
+        .selectAll("#crimeStatusTooltip")
+        .data([null])
+        .join("div")
+        .attr("id", "crimeStatusTooltip")
+        .attr("class", "crime-tooltip");
+
+    const parseDistribution = (value) => {
+      if (!value) return {};
+      if (typeof value === "object") return value;
+
+      try {
+        return JSON.parse(value);
+      } catch {
+        return {};
+      }
+    };
+
+    const normalizeRow = (row) => ({
+      ...row,
+      n_records: toNum(row.n_records),
+      male_percent: toNum(row.male_percent),
+      female_percent: toNum(row.female_percent),
+      age_distribution: parseDistribution(row.age_distribution),
+      crime_distribution: parseDistribution(row.crime_distribution),
+      "Released to USA - long term residence likely": toNum(row["Released to USA - long term residence likely"]),
+      "Released to USA - long term residence possible": toNum(row["Released to USA - long term residence possible"]),
+      "Released to USA - will be detained at a later date": toNum(row["Released to USA - will be detained at a later date"]),
+      "Released to USA - will likely be detained again": toNum(row["Released to USA - will likely be detained again"]),
+      "Awaiting Deportation": toNum(row["Awaiting Deportation"]),
+      "Deported": toNum(row["Deported"]),
+      "Bond Percentage": toNum(row["Bond Percentage"]),
+      "Average Bond Paid": toNum(row["Average Bond Paid"]),
+      "Number Transfers": toNum(row["Number Transfers"]),
+      "Miles Traveled": toNum(row["Miles Traveled"]),
+      "Days spent prior to deportation": toNum(row["Days spent prior to deportation"]),
+      "Days spent prior to release": toNum(row["Days spent prior to release"])
+    });
+
+    const mountSelectOptions = (selector, options) => {
+      d3.select(selector)
+        .selectAll("option")
+        .data(options)
+        .join("option")
+        .attr("value", (d) => d)
+        .text((d) => d);
+    };
+
+    const getUniqueOptions = (rows, column) => {
+      const values = [...new Set(rows.map((r) => r[column]).filter(Boolean))];
+      const withoutAll = values.filter((value) => value !== "All").sort((a, b) => a.localeCompare(b));
+      return values.includes("All") ? ["All", ...withoutAll] : withoutAll;
+    };
+
+    const getCurrentFilters = () => {
+      const filters = {};
+      Object.entries(dims).forEach(([col, selector]) => {
+        filters[col] = d3.select(selector).property("value") || "All";
+      });
+      return filters;
+    };
+
+    const getMatchingRow = (rows, filters) => {
+      const exact = rows.find(
+        (row) => row.age_group === filters.age_group
+          && row.gender === filters.gender
+          && row.citizenship_country_sub_region === filters.citizenship_country_sub_region
+          && row.conviction_charge_badness === filters.conviction_charge_badness
+      );
+
+      if (exact) return exact;
+
+      const filterKeys = Object.keys(dims);
+      const permissiveRows = rows.filter((row) =>
+        filterKeys.every((key) => row[key] === filters[key] || row[key] === "All")
+      );
+      const scored = permissiveRows
+        .map((row) => ({
+          row,
+          specificity: filterKeys.reduce((acc, key) => acc + (row[key] === "All" ? 0 : 1), 0)
+        }))
+        .sort((a, b) => b.specificity - a.specificity);
+
+      return scored[0]?.row || fallbackRow;
+    };
+
+    const clearNode = (selector) => d3.select(selector).selectAll("*").remove();
+
+    const renderGenderBox = (row) => {
+      clearNode("#genderBox");
+
+      const malePercent = row.male_percent ?? 0;
+      const femalePercent = row.female_percent ?? Math.max(0, 100 - malePercent);
+      const prominentGender = malePercent >= femalePercent
+        ? { label: "male", percent: malePercent }
+        : { label: "female", percent: femalePercent };
+
+      d3.select("#genderBox")
+        .append("div")
+        .style("font-size", "25px")
+        .style("font-weight", "600")
+        .style("font-family", "\"Libre Baskerville\", serif")
+        .text(`${Math.round(prominentGender.percent)}% are ${prominentGender.label}`);
+
+      const genderSvg = d3.select("#genderBox")
+        .append("svg")
+        .attr("viewBox", "0 0 230 180")
+        .attr("aria-label", "Gender pie chart");
+
+      const pieData = [
+        { label: "Male", value: malePercent, color: "var(--stay-likely)" },
+        { label: "Female", value: femalePercent, color: "var(--female-pink)" }
+      ];
+
+      const pieGenerator = d3.pie().value((d) => d.value).sort(null);
+      const arcGenerator = d3.arc().innerRadius(0).outerRadius(68);
+
+      genderSvg
+        .append("g")
+        .attr("transform", "translate(112,98)")
+        .selectAll("path")
+        .data(pieGenerator(pieData))
+        .join("path")
+        .attr("d", arcGenerator)
+        .attr("fill", (d) => d.data.color)
+        .attr("stroke", "transparent")
+        .attr("stroke-width", 6);
+    };
+
+    const renderAgeDistribution = (row) => {
+      clearNode("#crimeBoxPrimary");
+      clearNode("#crimeBoxSecondary");
+
+      d3.select("#crimeBoxPrimary")
+        .append("div")
+        .style("font-size", "25px")
+        .style("font-weight", "600")
+        .style("font-family", "\"Libre Baskerville\", serif")
+        .text("Age Distribution");
+
+      d3.select("#crimeBoxSecondary")
+        .append("div")
+        .style("font-size", "25px")
+        .style("font-weight", "600")
+        .style("font-family", "\"Libre Baskerville\", serif")
+        .text("Criminal Status");
+
+      const crimeColorForCategory = (crimeCategory) => {
+        if (crimeCategory.includes("None")) return "#e5e7eb";
+        if (crimeCategory.includes("Minimal")) return "#fee2e2";
+        if (crimeCategory.includes("Low")) return "#fca5a5";
+        if (crimeCategory.includes("Moderate")) return "#f87171";
+        if (crimeCategory.includes("High")) return "#dc2626";
+        if (crimeCategory.includes("Extreme")) return "#7f1d1d";
+        return "#6b1f2b";
+      };
+
+      const crimesByBadnessCategory = {
+        "0 - None": ["No criminal history"],
+        "1 - Minimal": ["Immigration crime"],
+        "2 - Low": [
+          "Public Order",
+          "Privacy / communication offense",
+          "Family / child offense",
+          "Traffic - non-DUI"
+        ],
+        "3 - Moderate": [
+          "Drug Possession",
+          "Traffic - DUI",
+          "Weapons",
+          "Escape / custody violation"
+        ],
+        "4 - High": [
+          "Drug Selling + Manufacturing",
+          "Theft, fraud, financial, or proprety"
+        ],
+        "5 - Extreme": [
+          "Violent Crime",
+          "Sexual crimes",
+          "National security"
+        ]
+      };
+
+      const crimeDistribution = Object.entries(row.crime_distribution || {})
+        .map(([crimeCategory, pct]) => ({ crimeCategory, value: Number(pct) / 100 }))
+        .filter((d) => !Number.isNaN(d.value))
+        .sort((a, b) => a.crimeCategory.localeCompare(b.crimeCategory));
+
+      const crimeSvg = d3.select("#crimeBoxSecondary")
+        .append("svg")
+        .attr("viewBox", "0 0 560 220")
+        .attr("aria-label", "Criminal status distribution");
+
+      if (crimeDistribution.length === 0) {
+        crimeSvg.append("text")
+          .attr("x", 280)
+          .attr("y", 100)
+          .attr("text-anchor", "middle")
+          .style("font-size", "14px")
+          .text("No criminal status distribution data available");
+      } else {
+        const crimeMargin = { top: 8, right: 12, bottom: 54, left: 42 };
+        const crimeWidth = 560 - crimeMargin.left - crimeMargin.right;
+        const crimeHeight = 220 - crimeMargin.top - crimeMargin.bottom;
+        const crimePlot = crimeSvg.append("g").attr("transform", `translate(${crimeMargin.left},${crimeMargin.top})`);
+
+        const xCrime = d3.scaleBand()
+          .domain(crimeDistribution.map((d) => d.crimeCategory))
+          .range([0, crimeWidth])
+          .paddingInner(0.12);
+
+        const yCrime = d3.scaleLinear()
+          .domain([0, Math.max(0.05, d3.max(crimeDistribution, (d) => d.value))])
+          .range([crimeHeight, 0]);
+
+        const crimeBars = crimePlot
+          .selectAll("rect")
+          .data(crimeDistribution)
+          .join("rect")
+          .attr("x", (d) => xCrime(d.crimeCategory))
+          .attr("y", (d) => yCrime(d.value))
+          .attr("width", xCrime.bandwidth())
+          .attr("height", (d) => crimeHeight - yCrime(d.value))
+          .attr("fill", (d) => crimeColorForCategory(d.crimeCategory));
+
+        const crimeTooltip = getCrimeStatusTooltip();
+
+        const tooltipTextForCrimeCategory = (d) => {
+          const crimes = crimesByBadnessCategory[d.crimeCategory] || ["No mapped crimes available"];
+          return crimes.join("\n");
+        };
+
+        crimeBars
+          .on("mouseenter", (event, d) => {
+            crimeTooltip
+              .style("opacity", 1)
+              .text(tooltipTextForCrimeCategory(d));
+          })
+          .on("mousemove", (event) => {
+            crimeTooltip
+              .style("left", `${event.pageX + 12}px`)
+              .style("top", `${event.pageY + 12}px`);
+          })
+          .on("mouseleave", () => {
+            crimeTooltip.style("opacity", 0);
+          })
+          .on("blur", () => {
+            crimeTooltip.style("opacity", 0);
+          })
+          .attr("tabindex", 0)
+          .on("focus", (event, d) => {
+            const crimes = crimesByBadnessCategory[d.crimeCategory] || ["No mapped crimes available"];
+            const { pageX, pageY } = event;
+            crimeTooltip
+              .style("left", `${(pageX || 0) + 12}px`)
+              .style("top", `${(pageY || 0) + 12}px`)
+              .style("opacity", 1)
+              .text(crimes.join("\n"));
+          });
+
+        crimePlot
+          .append("g")
+          .attr("transform", `translate(0,${crimeHeight})`)
+          .call(d3.axisBottom(xCrime))
+          .call((g) => g.selectAll("text").style("font-size", "10px").attr("transform", "rotate(-20)").style("text-anchor", "end"));
+
+        crimePlot
+          .append("g")
+          .call(d3.axisLeft(yCrime).ticks(6).tickFormat(d3.format(".0%")))
+          .call((g) => g.selectAll("text").style("font-size", "11px"));
+      }
+
+      const distribution = row.age_distribution || {};
+      const ageDistribution = Object.entries(distribution)
+        .map(([age, pct]) => ({ age: Number(age), value: Number(pct) / 100 }))
+        .filter((d) => !Number.isNaN(d.age) && !Number.isNaN(d.value))
+        .sort((a, b) => a.age - b.age);
+
+      const ageSvg = d3.select("#crimeBoxPrimary")
+        .append("svg")
+        .attr("viewBox", "0 0 560 220")
+        .attr("aria-label", "Primary group age histogram");
+
+      if (ageDistribution.length === 0) {
+        ageSvg.append("text")
+          .attr("x", 280)
+          .attr("y", 100)
+          .attr("text-anchor", "middle")
+          .style("font-size", "14px")
+          .text("No age distribution data available");
+        return;
+      }
+
+      const ageMargin = { top: 8, right: 12, bottom: 54, left: 42 };
+      const ageWidth = 560 - ageMargin.left - ageMargin.right;
+      const ageHeight = 220 - ageMargin.top - ageMargin.bottom;
+      const agePlot = ageSvg.append("g").attr("transform", `translate(${ageMargin.left},${ageMargin.top})`);
+      const uniqueAges = [...new Set(ageDistribution.map((d) => d.age))].sort((a, b) => a - b);
+      const xAge = d3.scaleBand()
+        .domain(uniqueAges)
+        .range([0, ageWidth])
+        .paddingInner(0.12)
+        .paddingOuter(0.06);
+
+      const ageTickStep = uniqueAges.length <= 12 ? 1 : (uniqueAges.length <= 24 ? 2 : 5);
+      const ageTickValues = uniqueAges.filter((_, idx) => idx % ageTickStep === 0);
+      if (ageTickValues[ageTickValues.length - 1] !== uniqueAges[uniqueAges.length - 1]) {
+        ageTickValues.push(uniqueAges[uniqueAges.length - 1]);
+      }
+
+      const maxY = Math.max(0.05, d3.max(ageDistribution, (d) => d.value));
+      const yAge = d3.scaleLinear()
+        .domain([0, maxY])
+        .range([ageHeight, 0]);
+      const ageYTickMax = Math.ceil(maxY / 0.02) * 0.02;
+      const ageYTickValues = d3.range(0, ageYTickMax + 0.0001, 0.02);
+
+      agePlot
+        .selectAll("rect")
+        .data(ageDistribution)
+        .join("rect")
+        .attr("x", (d) => xAge(d.age))
+        .attr("y", (d) => yAge(d.value))
+        .attr("width", xAge.bandwidth())
+        .attr("height", (d) => ageHeight - yAge(d.value))
+        .attr("fill", "var(--stay-likely)");
+
+      agePlot
+        .append("g")
+        .attr("transform", `translate(0,${ageHeight})`)
+        .call(d3.axisBottom(xAge).tickValues(ageTickValues))
+        .call((g) => g.selectAll("text").style("font-size", "11px"));
+
+      agePlot
+        .append("g")
+        .call(d3.axisLeft(yAge).tickValues(ageYTickValues).tickFormat(d3.format(".0%")))
+        .call((g) => g.selectAll("text").style("font-size", "11px"));
+    };
+
+    const renderOutcomePanel = (row) => {
+      clearNode("#midSvg");
+      clearNode("#outcomeLegend");
+
+      const getOutcomeValue = (key) => {
+        const aliases = outcomeKeyAliases[key] || [key];
+        for (const alias of aliases) {
+          const value = toNum(row[alias]);
+          if (value !== null) return value;
+        }
+        return 0;
+      };
+
+      const outcomes = outcomeOrder.map((key) => ({ key, value: getOutcomeValue(key) }));
+      const floorCounts = outcomes.map((d) => ({ ...d, count: Math.floor(d.value), remainder: d.value - Math.floor(d.value) }));
+      const floorTotal = d3.sum(floorCounts, (d) => d.count);
+      const slotsRemaining = Math.max(0, 100 - floorTotal);
+
+      floorCounts
+        .sort((a, b) => b.remainder - a.remainder)
+        .slice(0, slotsRemaining)
+        .forEach((d) => { d.count += 1; });
+
+      const countsByKey = {};
+      floorCounts.forEach((d) => { countsByKey[d.key] = d.count; });
+      const longTermStayCount = (countsByKey["Released to USA - long term residence likely"] || 0)
+        + (countsByKey["Released to USA - long term residence possible"] || 0);
+      const deportedCount = (countsByKey["Awaiting Deportation"] || 0) + (countsByKey.Deported || 0);
+
+      d3.select("#outcomeTitle")
+        .text(
+          `For every 100 detainees, ${longTermStayCount} will get to stay long-term, and ${deportedCount} will be deported.`
+        );
+
+      const leftKeys = [
+        "Released to USA - long term residence likely",
+        "Released to USA - long term residence possible",
+        "Released to USA - will be detained again"
+      ];
+      const rightKeys = ["Awaiting Deportation", "Deported"];
+
+      const makeIcons = (keys) => {
+        const iconList = [];
+        keys.forEach((key) => {
+          for (let i = 0; i < (countsByKey[key] || 0); i += 1) {
+            iconList.push({ category: key, color: outcomeColors[key] });
+          }
+        });
+        return iconList;
+      };
+
+      const leftIcons = makeIcons(leftKeys);
+      const rightIcons = makeIcons(rightKeys);
+      const midSvg = d3.select("#midSvg");
+
+      const mapArea = {
+        x: 0,
+        y: 0,
+        width: 800,
+        height: 430
+      };
+
+      midSvg.append("image")
+        .attr("href", "america.png")
+        .attr("x", mapArea.x)
+        .attr("y", mapArea.y)
+        .attr("width", mapArea.width)
+        .attr("height", mapArea.height)
+        .attr("preserveAspectRatio", "xMinYMid slice");
+
+      const drawPeople = (group, icons, columns, iconSize, gapX, gapY, personTemplate, cellPositions = null) => {
+        const person = group.selectAll("g.person").data(icons).join("g")
+          .attr("class", "person")
+          .attr("transform", (_, i) => {
+            const chosenCell = cellPositions && cellPositions[i] ? cellPositions[i] : null;
+            if (cellPositions && !chosenCell) return "translate(-9999,-9999)";
+            const x = chosenCell
+              ? chosenCell.col * (iconSize + gapX)
+              : (i % columns) * (iconSize + gapX);
+            const y = chosenCell
+              ? chosenCell.row * (iconSize + gapY)
+              : Math.floor(i / columns) * (iconSize + gapY);
+            return `translate(${x},${y})`;
+          });
+
+        person.each(function(d) {
+          const node = d3.select(this);
+          node.selectAll("*").remove();
+
+          if (personTemplate) {
+            const clone = personTemplate.cloneNode(true);
+            const svgNode = d3.select(clone)
+              .attr("x", 0)
+              .attr("y", 0)
+              .attr("width", iconSize)
+              .attr("height", iconSize)
+              .attr("preserveAspectRatio", "xMidYMid meet");
+
+            svgNode.selectAll("*")
+              .attr("fill", d.color)
+              .attr("stroke", "none");
+
+            this.appendChild(clone);
+            return;
+          }
+
+          node.append("circle")
+            .attr("cx", iconSize / 2)
+            .attr("cy", iconSize / 2)
+            .attr("r", iconSize * 0.35)
+            .attr("fill", d.color);
+        });
+      };
+
+      const buildIconGroup = (icons, centerX, centerY, gapX, gapY) => {
+        const iconSize = 38;
+        const columns = Math.max(1, Math.min(10, icons.length));
+        const rows = Math.ceil(icons.length / columns);
+        const width = columns * iconSize + (columns - 1) * gapX;
+        const height = rows * iconSize + (rows - 1) * gapY;
+
+        return {
+          group: midSvg.append("g").attr("transform", `translate(${centerX - width / 2},${centerY - height / 2})`),
+          columns,
+          rows,
+          iconSize,
+          gapX,
+          gapY
+        };
+      };
+
+      const buildGridCells = (layout, options = {}) => {
+        const extraRowsTop = options.extraRowsTop || 0;
+        const extraRowsBottom = options.extraRowsBottom || 0;
+        const allowedDisplayRanges = options.allowedDisplayRanges || [];
+
+        const allowedSet = new Set();
+        allowedDisplayRanges.forEach(({ row, startCol, endCol }) => {
+          for (let col = startCol; col <= endCol; col += 1) {
+            allowedSet.add(`${row},${col}`);
+          }
+        });
+
+        const hasAllowedMask = allowedSet.size > 0;
+        const firstRow = -extraRowsTop;
+        const lastRow = layout.rows + extraRowsBottom - 1;
+        const cells = [];
+
+        for (let row = firstRow; row <= lastRow; row += 1) {
+          for (let col = 0; col < layout.columns; col += 1) {
+            const displayRow = row - firstRow;
+            const displayKey = `${displayRow},${col}`;
+            cells.push({
+              row,
+              col,
+              displayRow,
+              isAllowed: hasAllowedMask ? allowedSet.has(displayKey) : true
+            });
+          }
+        }
+
+        return cells;
+      };
+
+      const drawPlacementGrid = (layout, cells, options = {}) => {
+        const stroke = options.stroke || "#64748b";
+        const strokeWidth = options.strokeWidth || 1;
+        const strokeDasharray = options.strokeDasharray || "3,2";
+
+        layout.group
+          .append("g")
+          .attr("class", "placement-grid")
+          .attr("pointer-events", "none")
+          .selectAll("rect")
+          .data(cells)
+          .join("rect")
+          .attr("x", (d) => d.col * (layout.iconSize + layout.gapX))
+          .attr("y", (d) => d.row * (layout.iconSize + layout.gapY))
+          .attr("width", layout.iconSize)
+          .attr("height", layout.iconSize)
+          .attr("fill", "none")
+          .attr("stroke", (d) => (d.isAllowed ? "#2563eb" : stroke))
+          .attr("stroke-width", (d) => (d.isAllowed ? 1.4 : strokeWidth))
+          .attr("stroke-dasharray", (d) => (d.isAllowed ? "none" : strokeDasharray))
+          .attr("opacity", (d) => (d.isAllowed ? 0.8 : 0.45));
+      };
+
+      const left = buildIconGroup(leftIcons, 320, 220, 10, 10);
+      const right = buildIconGroup(rightIcons, 980, 230, 6, 6);
+
+      const leftGridOptions = {
+        extraRowsTop: 3,
+        extraRowsBottom: 3,
+        // Display-row indexing starts at 0 for the topmost extra row.
+        // These ranges represent cells inside the blue hand-drawn boundary.
+        allowedDisplayRanges: [
+          { row: 1, startCol: 0, endCol: 5 },
+          { row: 2, startCol: 0, endCol: 7 },
+          { row: 3, startCol: 0, endCol: 8 },
+          { row: 4, startCol: 0, endCol: 8 },
+          { row: 5, startCol: 0, endCol: 8 },
+          { row: 6, startCol: 0, endCol: 8 },
+          { row: 7, startCol: 0, endCol: 8 },
+          { row: 8, startCol: 3, endCol: 8 }
+        ]
+      };
+      const leftGridCells = buildGridCells(left, leftGridOptions);
+      const leftAllowedCells = leftGridCells.filter((cell) => cell.isAllowed);
+      const leftGridCenterRow = (d3.min(leftGridCells, (d) => d.row) + d3.max(leftGridCells, (d) => d.row)) / 2;
+      const leftPlacementCells = leftIcons.length < 40
+        ? [...leftAllowedCells]
+          .sort((a, b) => {
+            const aDist = Math.abs(a.row - leftGridCenterRow);
+            const bDist = Math.abs(b.row - leftGridCenterRow);
+            if (aDist !== bDist) return aDist - bDist;
+            if (a.row !== b.row) return a.row - b.row;
+            return a.col - b.col;
+          })
+          .slice(0, leftIcons.length)
+          .sort((a, b) => (a.row - b.row) || (a.col - b.col))
+        : leftAllowedCells;
+
+      // Grid helper retained for tuning, but hidden in normal rendering.
+      // drawPlacementGrid(left, leftGridCells);
+
+      d3.xml("fat_person.svg")
+        .then((doc) => {
+          const template = doc.documentElement;
+          drawPeople(left.group, leftIcons, left.columns, left.iconSize, left.gapX, left.gapY, template, leftPlacementCells);
+          drawPeople(right.group, rightIcons, right.columns, right.iconSize, right.gapX, right.gapY, template);
+        })
+        .catch(() => {
+          drawPeople(left.group, leftIcons, left.columns, left.iconSize, left.gapX, left.gapY, null, leftPlacementCells);
+          drawPeople(right.group, rightIcons, right.columns, right.iconSize, right.gapX, right.gapY, null);
+        });
+
+      d3.select("#outcomeLegend")
+        .selectAll("div.legend-item")
+        .data(outcomeOrder)
+        .join("div")
+        .attr("class", "legend-item")
+        .html((key) => `<span class='swatch' style='background:${outcomeColors[key]};'></span><span>${outcomeLabels[key]}</span>`);
+    };
+
+    const renderBondAndDetention = (row) => {
+      clearNode("#bondSvg");
+
+      const bondPct = row["Bond Percentage"] ?? 0;
+      const bondShare = Math.max(0, Math.min(1, bondPct / 100));
+
+      d3.select("#bondText")
+        .text(`${Math.round(bondPct)}% of those released within the USA pay a bond.`);
+
+      const overallAvg = 6969.51;
+
+      const filters = getCurrentFilters();
+      const allAll = Object.values(filters).every(v => v === "All");
+
+      const avgBond = row["Average Bond Paid"];
+
+      // Hide the statement entirely if bondPct < 0.5%
+      if (bondPct < 0.5) {
+        d3.select("#bondValue").text("");
+      } else {
+        let text;
+
+        if (!avgBond) {
+          text = "The average bond paid is N/A";
+        } else {
+          // percent difference vs overall
+          const pctDiff = ((avgBond - overallAvg) / overallAvg) * 100;
+          const pctFormatted = Math.abs(pctDiff).toFixed(0);
+
+          let comparisonText = "";
+          if (!allAll) {
+            if (pctDiff > 0) {
+              comparisonText = `, ${pctFormatted}% higher than the overall average.`;
+            } else if (pctDiff < 0) {
+              comparisonText = `, ${pctFormatted}% lower than the overall average.`;
+            } else {
+              comparisonText = `, equal to the overall average.`;
+            }
+          }
+
+          text = `The average bond paid is ${money(avgBond)}${comparisonText}`;
+        }
+
+        d3.select("#bondValue").text(text);
+      }
+
+      d3.select("#transferText")
+        .html(`There are <strong>${row["Number Transfers"] ?? "N/A"} transfers</strong>.`);
+
+      d3.select("#milesText")
+        .html(`<strong>${row["Miles Traveled"] ?? "N/A"} miles</strong> are traveled.`);
+
+      d3.select("#detentionDaysDeportText")
+        .html(`<strong>${row["Days spent prior to deportation"] ?? "N/A"} days</strong> are spent in detention prior to deportation.`);
+
+      d3.select("#detentionDaysReleaseText")
+        .html(`<strong>${row["Days spent prior to release"] ?? "N/A"} days</strong> are spent in detention prior to release into the USA.`);
+
+      const renderMonthGlyphs = (selector, daysValue) => {
+        const days = toNum(daysValue);
+        const rowSelection = d3.select(selector);
+        rowSelection.selectAll("*").remove();
+
+        if (days === null || days <= 0) return;
+
+        const uncappedGlyphs = Math.ceil(days / DAYS_PER_MONTH);
+        const totalGlyphs = Math.min(12, uncappedGlyphs);
+        const finalGlyphFraction = (days % DAYS_PER_MONTH) / DAYS_PER_MONTH || 1;
+        const wasCapped = uncappedGlyphs > 12;
+
+        const glyphData = Array.from({ length: totalGlyphs }, (_, i) =>
+          i === totalGlyphs - 1 && !wasCapped ? finalGlyphFraction : 1
+        );
+
+        rowSelection
+          .selectAll("img.month-glyph")
+          .data(glyphData)
+          .join("img")
+          .attr("class", "month-glyph")
+          .attr("src", CALENDAR_GLYPH_PATH)
+          .attr("alt", "")
+          .style("width", (fraction) => `${54 * fraction}px`);
+      };
+
+      renderMonthGlyphs("#deportMonthGlyphRow", row["Days spent prior to deportation"]);
+      renderMonthGlyphs("#releaseMonthGlyphRow", row["Days spent prior to release"]);
+
+      const bondSvg = d3.select("#bondSvg");
+      const bondStackArea = d3.select("#bondStackArea");
+      bondStackArea.selectAll("*").remove();
+
+      const bondPie = d3.pie().value((d) => d.value).sort(null)([
+        { label: "Paid bond", value: bondShare, color: "#7f1d1d" },
+        { label: "No bond", value: 1 - bondShare, color: "#cad5eb" }
+      ]);
+
+      const pieCenterX = 200;
+      const pieCenterY = 118;
+      const pieRadius = 100;
+
+      bondSvg
+        .append("g")
+        .attr("transform", `translate(${pieCenterX},${pieCenterY})`)
+        .selectAll("path")
+        .data(bondPie)
+        .join("path")
+        .attr("d", d3.arc().innerRadius(0).outerRadius(pieRadius))
+        .attr("fill", (d) => d.data.color)
+        .attr("stroke", "#ffffff")
+        .attr("stroke-width", 1.5);
+
+      const showZeroBondImage = bondPct < 0.5 || !avgBond || avgBond < 10;
+      const rawStackCount = showZeroBondImage
+        ? 0
+        : Math.max(1, Math.floor(avgBond / 1000));
+      const stackCount = Math.min(max_cash_stacks, rawStackCount);
+
+      if (showZeroBondImage) {
+        bondStackArea
+          .append("img")
+          .attr("class", "bond-stack-image")
+          .attr("src", ZERO_BOND_PATH)
+          .style("bottom", "2px");
+      } else {
+        const yOffset = Math.max(0, cash_offset);
+        for (let i = 0; i < stackCount; i += 1) {
+          bondStackArea
+            .append("img")
+            .attr("class", "bond-stack-image")
+            .attr("src", CASH_STACK_PATH)
+            .style("bottom", `${2 + (i * yOffset)}px`);
+        }
+      }
+
+      const bondLegend = bondSvg.append("g")
+        .attr("transform", "translate(200,244)");
+
+      const legendItems = [
+        { label: "No bond", color: "#cad5eb", x: -85 },
+        { label: "Paid bond", color: "#7f1d1d", x: 25 }
+      ];
+
+      const legendGroup = bondLegend.selectAll("g")
+        .data(legendItems)
+        .join("g")
+        .attr("transform", (d) => `translate(${d.x},0)`);
+
+      legendGroup.append("circle")
+        .attr("r", 6)
+        .attr("cx", 0)
+        .attr("cy", -4)
+        .attr("fill", (d) => d.color);
+
+      legendGroup.append("text")
+        .attr("x", 12)
+        .attr("y", 0)
+        .attr("dominant-baseline", "middle")
+        .style("font-size", "14px")
+        .style("fill", "var(--text-dark)")
+        .text((d) => d.label);
+    };
+
+    const renderFromFilters = (rows) => {
+      const filters = getCurrentFilters();
+      const row = getMatchingRow(rows, filters);
+            const fullDatasetRow = getMatchingRow(rows, {
+        age_group: "All",
+        gender: "All",
+        citizenship_country_sub_region: "All",
+        conviction_charge_badness: "All"
+      });
+      const selectedCount = row.n_records ?? 0;
+      const totalCount = fullDatasetRow.n_records ?? 0;
+      const selectedShare = totalCount > 0 ? (selectedCount / totalCount) * 100 : 0;
+      const selectedShareText = selectedShare.toFixed(1).padStart(0, "0");
+
+      d3.select("#selectionHeading")
+                .text(`For these ${numberWithCommas(selectedCount)} detainees (${selectedShareText}% of dataset):`);
+
+      renderGenderBox(row);
+      renderAgeDistribution(row);
+      renderOutcomePanel(row);
+      renderBondAndDetention(row);
+    };
+
+    const bindFilterEvents = (rows) => {
+      Object.values(dims).forEach((selector) => {
+        d3.select(selector).on("change", () => renderFromFilters(rows));
+      });
+    };
+
+    const boot = async () => {
+      let rows = [];
+      try {
+        rows = (await d3.json(DATA_PATH)).map(normalizeRow);
+      } catch (error) {
+        console.warn(`Could not load ${DATA_PATH}. Falling back to default demo data.`, error);
+        rows = [fallbackRow];
+      }
+
+      Object.entries(dims).forEach(([column, selector]) => {
+        mountSelectOptions(selector, getUniqueOptions(rows, column));
+        d3.select(selector).property("value", "All");
+      });
+
+      bindFilterEvents(rows);
+      renderFromFilters(rows);
+    };
+
+    boot();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Detainee Flow Map</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 16px;
+      background: #fafafa;
+      color: #222;
+    }
+
+    h1 {
+      margin: 0 0 10px 0;
+      font-size: 24px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    label {
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 500px;
+    }
+
+    button {
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    #status {
+      font-weight: 600;
+    }
+
+    svg {
+      background: white;
+      border: 1px solid #ddd;
+      display: block;
+    }
+
+    .land {
+      fill: #e7e7e7;
+      stroke: #999;
+      stroke-width: 0.5px;
+    }
+
+    .flow {
+      stroke: darkorange;
+      stroke-opacity: 0.32;
+      fill: none;
+      pointer-events: none;
+    }
+
+    .facility {
+      fill: steelblue;
+      fill-opacity: 0.72;
+      stroke: #1d4f7a;
+      stroke-width: 0.7px;
+    }
+
+    .legend text {
+      font-size: 12px;
+      fill: #333;
+    }
+
+    .tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.35;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      display: none;
+      max-width: 280px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Detainee Flow Map</h1>
+
+  <div class="controls">
+    <button id="playPauseBtn">Play</button>
+
+    <label for="timeSlider">Time</label>
+    <input type="range" id="timeSlider" />
+
+    <span id="status"></span>
+
+    <label for="windowDays">Flow window (days)</label>
+    <input type="number" id="windowDays" min="1" max="365" step="1" value="7" style="width:80px;" />
+  </div>
+
+  <svg id="chart" width="1200" height="700"></svg>
+  <div id="tooltip" class="tooltip"></div>
+
+  <script>
+    const width = 1200;
+    const height = 700;
+
+    const svg = d3.select("#chart");
+    const tooltip = d3.select("#tooltip");
+
+    const playPauseBtn = d3.select("#playPauseBtn");
+    const slider = d3.select("#timeSlider");
+    const status = d3.select("#status");
+    const windowDaysInput = d3.select("#windowDays");
+
+    const projection = d3.geoNaturalEarth1()
+      .rotate([98, 0])
+      .scale(220)
+      .translate([width / 2, height / 2 + 20]);
+
+    const geoPath = d3.geoPath(projection);
+
+    const mapLayer = svg.append("g");
+    const flowLayer = svg.append("g");
+    const facilityLayer = svg.append("g");
+    const legendLayer = svg.append("g").attr("class", "legend");
+
+    let stays = [];
+    let transfers = [];
+    let minTime;
+    let maxTime;
+    let timer = null;
+    let isPlaying = false;
+
+    const dayMs = 24 * 60 * 60 * 1000;
+    const sliderStepMs = dayMs;
+
+    const timeFormatter = d3.utcFormat("%Y-%m-%d %H:%M UTC");
+    const numberFormatter = d3.format(",");
+
+    Promise.all([
+      d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"),
+      d3.csv("stays.csv", d => ({
+        uid: d.uid,
+        facility: d.facility,
+        start: new Date(d.start),
+        end: new Date(d.end),
+        latitude: +d.latitude,
+        longitude: +d.longitude
+      }))
+    ]).then(([world, rawData]) => {
+      stays = rawData.filter(d =>
+        d.uid &&
+        d.facility &&
+        d.start instanceof Date && !isNaN(d.start) &&
+        d.end instanceof Date && !isNaN(d.end) &&
+        Number.isFinite(d.latitude) &&
+        Number.isFinite(d.longitude)
+      );
+
+      if (stays.length === 0) {
+        throw new Error("No valid rows found in stays.csv");
+      }
+
+      stays.sort((a, b) =>
+        d3.ascending(a.uid, b.uid) ||
+        d3.ascending(a.start, b.start) ||
+        d3.ascending(a.end, b.end)
+      );
+
+      transfers = buildTransfers(stays);
+
+      minTime = d3.min(stays, d => d.start);
+      maxTime = d3.max(stays, d => d.end);
+
+      drawWorldMap(world);
+      setupSlider(minTime, maxTime);
+      drawLegend();
+
+      const initialTime = minTime;
+      setTime(initialTime);
+
+      slider.on("input", function() {
+        pause();
+        setTime(new Date(+this.value));
+      });
+
+      playPauseBtn.on("click", function() {
+        if (isPlaying) {
+          pause();
+        } else {
+          play();
+        }
+      });
+
+      windowDaysInput.on("input", function() {
+        update(new Date(+slider.property("value")));
+      });
+    }).catch(err => {
+      console.error(err);
+      status.text(`Error: ${err.message}`);
+    });
+
+    function drawWorldMap(world) {
+      const countries = topojson.feature(world, world.objects.countries);
+      const countriesNoAntarctica = countries.features.filter(feature => {
+        const centroid = d3.geoCentroid(feature);
+        return centroid && centroid[1] > -60;
+      });
+
+      mapLayer.selectAll("path")
+        .data(countriesNoAntarctica)
+        .join("path")
+        .attr("class", "land")
+        .attr("d", geoPath);
+    }
+
+    function setupSlider(minT, maxT) {
+      slider
+        .attr("min", +minT)
+        .attr("max", +maxT)
+        .attr("step", sliderStepMs)
+        .property("value", +minT);
+    }
+
+    function buildTransfers(stayRows) {
+      const grouped = d3.group(stayRows, d => d.uid);
+      const result = [];
+
+      for (const [uid, rows] of grouped) {
+        rows.sort((a, b) =>
+          d3.ascending(a.start, b.start) ||
+          d3.ascending(a.end, b.end)
+        );
+
+        for (let i = 0; i < rows.length - 1; i++) {
+          const from = rows[i];
+          const to = rows[i + 1];
+
+          result.push({
+            uid,
+            from_facility: from.facility,
+            to_facility: to.facility,
+            depart: from.end,
+            arrive: to.start,
+            lat1: from.latitude,
+            lon1: from.longitude,
+            lat2: to.latitude,
+            lon2: to.longitude
+          });
+        }
+      }
+
+      return result;
+    }
+
+    function getOccupancyAtTime(t) {
+      const active = stays.filter(d => d.start <= t && t < d.end);
+
+      const rolled = d3.rollup(
+        active,
+        v => ({
+          count: v.length,
+          latitude: v[0].latitude,
+          longitude: v[0].longitude
+        }),
+        d => d.facility
+      );
+
+      return Array.from(rolled, ([facility, value]) => ({
+        facility,
+        count: value.count,
+        latitude: value.latitude,
+        longitude: value.longitude
+      }));
+    }
+
+    function getRecentFlows(t, windowDays) {
+      const windowStart = new Date(+t - windowDays * dayMs);
+
+      const recent = transfers.filter(d => d.depart >= windowStart && d.depart <= t);
+
+      const rolled = d3.rollup(
+        recent,
+        v => ({
+          count: v.length,
+          lat1: v[0].lat1,
+          lon1: v[0].lon1,
+          lat2: v[0].lat2,
+          lon2: v[0].lon2,
+          from_facility: v[0].from_facility,
+          to_facility: v[0].to_facility
+        }),
+        d => `${d.from_facility}|||${d.to_facility}`
+      );
+
+      return Array.from(rolled, ([key, value]) => ({
+        key,
+        from_facility: value.from_facility,
+        to_facility: value.to_facility,
+        count: value.count,
+        lat1: value.lat1,
+        lon1: value.lon1,
+        lat2: value.lat2,
+        lon2: value.lon2
+      }));
+    }
+
+    function setTime(t) {
+      slider.property("value", +t);
+      update(t);
+    }
+
+    function play() {
+      isPlaying = true;
+      playPauseBtn.text("Pause");
+
+      timer = d3.interval(() => {
+        let current = new Date(+slider.property("value"));
+        let next = new Date(+current + sliderStepMs);
+
+        if (+next > +maxTime) {
+          next = minTime;
+        }
+
+        setTime(next);
+      }, 120);
+    }
+
+    function pause() {
+      isPlaying = false;
+      playPauseBtn.text("Play");
+
+      if (timer) {
+        timer.stop();
+        timer = null;
+      }
+    }
+
+    function update(t) {
+      const windowDays = Math.max(1, +windowDaysInput.property("value") || 7);
+
+      const occupancy = getOccupancyAtTime(t);
+      const flows = getRecentFlows(t, windowDays);
+
+      const maxOcc = d3.max(occupancy, d => d.count) || 1;
+      const maxFlow = d3.max(flows, d => d.count) || 1;
+
+      const radiusScale = d3.scaleSqrt()
+        .domain([0, maxOcc])
+        .range([0, 16]);
+
+      const flowWidthScale = d3.scaleSqrt()
+        .domain([0, maxFlow])
+        .range([0.75, 8]);
+
+      status.text(
+        `${timeFormatter(t)} | active at facilities: ${numberFormatter(d3.sum(occupancy, d => d.count))} | routes active in last ${windowDays} days: ${numberFormatter(flows.length)}`
+      );
+
+      const flowData = flows
+        .map(d => {
+          if (
+            !Number.isFinite(d.lon1) || !Number.isFinite(d.lat1) ||
+            !Number.isFinite(d.lon2) || !Number.isFinite(d.lat2)
+          ) {
+            return null;
+          }
+
+          return {
+            ...d,
+            lineString: {
+              type: "LineString",
+              coordinates: [
+                [d.lon1, d.lat1],
+                [d.lon2, d.lat2]
+              ]
+            }
+          };
+        })
+        .filter(d => d !== null);
+
+      flowLayer.selectAll("path.flow")
+        .data(flowData, d => d.key)
+        .join(
+          enter => enter.append("path")
+            .attr("class", "flow")
+            .attr("d", d => geoPath(d.lineString))
+            .attr("stroke-width", d => flowWidthScale(d.count)),
+          update => update
+            .attr("d", d => geoPath(d.lineString))
+            .attr("stroke-width", d => flowWidthScale(d.count)),
+          exit => exit.remove()
+        );
+
+      const occData = occupancy
+        .map(d => {
+          const p = projection([d.longitude, d.latitude]);
+          if (!p) return null;
+          return { ...d, x: p[0], y: p[1] };
+        })
+        .filter(d => d !== null);
+
+      facilityLayer.selectAll("circle.facility")
+        .data(occData, d => d.facility)
+        .join(
+          enter => enter.append("circle")
+            .attr("class", "facility")
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y)
+            .attr("r", d => radiusScale(d.count))
+            .on("mousemove", function(event, d) {
+              tooltip
+                .style("display", "block")
+                .style("left", `${event.pageX + 12}px`)
+                .style("top", `${event.pageY + 12}px`)
+                .html(`
+                  <strong>Facility:</strong> ${d.facility}<br>
+                  <strong>Count at time:</strong> ${numberFormatter(d.count)}<br>
+                  <strong>Lat:</strong> ${d.latitude}<br>
+                  <strong>Lon:</strong> ${d.longitude}
+                `);
+            })
+            .on("mouseout", function() {
+              tooltip.style("display", "none");
+            }),
+          update => update
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y)
+            .attr("r", d => radiusScale(d.count)),
+          exit => exit.remove()
+        );
+    }
+
+    function drawLegend() {
+      legendLayer.attr("transform", "translate(25, 25)");
+
+      legendLayer.append("text")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("dy", "0.9em")
+        .text("Legend");
+
+      legendLayer.append("circle")
+        .attr("cx", 10)
+        .attr("cy", 30)
+        .attr("r", 8)
+        .attr("class", "facility");
+
+      legendLayer.append("text")
+        .attr("x", 28)
+        .attr("y", 34)
+        .text("Facility occupancy");
+
+      legendLayer.append("line")
+        .attr("x1", 2)
+        .attr("y1", 58)
+        .attr("x2", 18)
+        .attr("y2", 58)
+        .attr("class", "flow")
+        .attr("stroke-width", 5);
+
+      legendLayer.append("text")
+        .attr("x", 28)
+        .attr("y", 62)
+        .text("Transfers in trailing window");
+    }
+  </script>
+</body>
+</html>
